@@ -1,0 +1,16 @@
+.Rhistory
+*.xlsx
+*.pdf
+
+## Ignore folders
+code_polymod/
+code/
+code2/
+paper-draft/
+code_final/.Rhistory
+code_final/trash/
+code_final/rds/POLYMOD/output_physical_*
+code_final/rds/CoMix/output_CoMix_wave_physical_*
+code_final/socrates_rshiny-master/
+data/data_input/CoMix/
+code_final/rds/CoMix_fatigue_gamlss/
