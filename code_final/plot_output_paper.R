@@ -3,6 +3,7 @@ set.seed(123)
 # run first code.R
 library(rstudioapi)
 library(dplyr)
+library(RColorBrewer)
 dir <- dirname(getActiveDocumentContext()$path)
 setwd(dirname(getActiveDocumentContext()$path))
 country_list <- c("BE", "DE", "FI", "IT", "LU", "NL", "PL", "GB")
@@ -11,6 +12,8 @@ wave_list <- seq(9, 43)
 foi <- c(1.3, 3.3)
 source('helper/functions.R')
 N = 5000
+color_polymod <- brewer.pal(8, "Set2")
+
 
 #------- plot boxplot for the number of contacts (POLYMOD)
 temporary <- environment()
@@ -40,7 +43,8 @@ data_to_plot <- do.call("rbind", output_to_plot)
 data_to_plot$part_age_cat <- factor(data_to_plot$part_age_cat,
                                     labels = c("Children", "Teens", "Adults", "Elderly"))
 
-boxplot_polymod_aggregate_physical <- fplot_boxplot_daily_nondaily(dataset = data_to_plot[data_to_plot$contact_type == "physical",])
+boxplot_polymod_aggregate_physical <- fplot_boxplot_daily_nondaily(dataset = data_to_plot[data_to_plot$contact_type == "physical",],
+                                                                   breaks_input = c(0, 5, 15, 30, 60))
 ggsave("results/POLYMOD/boxplot_physical_contacts_aggregate.png",
        width = 2200*1.25, height = 1800*1.25, units = "px")
 
@@ -49,9 +53,10 @@ ggsave("results/POLYMOD/boxplot_physical_contacts_aggregate.png",
 data_to_plot_comix <- read.csv("../data/CoMix_Fatigue/redistribute_physical.csv")
 data_to_plot_comix$part_age_cat <- factor(data_to_plot_comix$part_age_cat,
                                     labels = c("Children", "Teens", "Adults", "Elderly"))
-boxplot_comix_aggregate_physical <- fplot_boxplot_daily_nondaily_comix(dataset = data_to_plot_comix)
+boxplot_comix_aggregate_physical <- fplot_boxplot_daily_nondaily_comix(dataset = data_to_plot_comix,
+                                                                       breaks_input = c(0, 5, 10, 20))
 ggsave("results/CoMix/boxplot_physical_contacts_aggregate.png",
-       width = 2200*1.25, height = 1800*1.25, units = "px")
+       width = 2200*1.35, height = 1800*1.25, units = "px")
 
 #------- plot the number of crude numbers (POLYMOD) - physical/ all contacts
 
@@ -89,119 +94,122 @@ data_ratio_to_plot_allcnt$country <- as.factor(data_ratio_to_plot_allcnt$country
 data_ratio_to_plot_physical <- data_ratio_to_plot[data_ratio_to_plot$cnt_type == "physical",]
 
 png(filename = "results/POLYMOD/crude_allcontacts_results.png", width = 600*1.5, height = 600*1.3)
-par(mfrow = c(2,2))
+par(oma = c(3,1,0.85,1), mfrow = c(2, 2), mar = c(4.75, 4, 3, 1))
 plot(x = seq(1, length(country_list)), 
      y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Children",]$sum_naive,
-     ylim= c(0,200), type = "n", xlab = "Country", ylab = "", main = "Children", xaxt = "n")
+     ylim= c(0,200), type = "n", xlab = "Country", ylab = "", main = "Children", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Children",]$sum_naive,
        ylim= c(0,200),
-       lty = 2, pch = 21, cex = 1, main = "Children", bg = "#c1121f",
+       lty = 2, pch = 21, cex = 1.2, main = "Children", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Children",]$sum_temp,
        ylim= c(0,200),
-       lty = 2, pch = 21, cex = 1, main = "Children", bg = "#669bbc",
+       lty = 2, pch = 21, cex = 1.2, main = "Children", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_physical[data_ratio_to_plot_physical$part_age_cat == "Children",]$sum_naive,
        ylim= c(0,200),
-       lty = 2, pch = 24, cex = 1, main = "Children", bg = "#c1121f",
+       lty = 2, pch = 24, cex = 1.2, main = "Children", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_physical[data_ratio_to_plot_physical$part_age_cat == "Children",]$sum_temp,
        ylim= c(0,200),
-       lty = 2, pch = 24, cex = 1, main = "Children", bg = "#669bbc",
+       lty = 2, pch = 24, cex = 1.2, main = "Children", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-legend("topright", legend = c("All contacts (Average)", "All contacts (Temporal)",
-                              "Physical contacts (Average)", "Physical contacts (Temporal)"),
-       pch = c(21, 21, 24, 24), pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(country_list), labels=country_list)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(country_list), labels=country_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3, "Total number of weekly distinct contacts", cex = 1.2)
 plot(x = seq(1, length(country_list)), 
      y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Teens",]$sum_naive,
-     ylim= c(0,200), type = "n", xlab = "Country", ylab = "", main = "Teens", xaxt = "n")
+     ylim= c(0,200), type = "n", xlab = "Country", ylab = "", main = "Teens", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Teens",]$sum_naive,
        ylim= c(0,200),
-       lty = 2, pch = 21, cex = 1, main = "Teens", bg = "#c1121f",
+       lty = 2, pch = 21, cex = 1.2, main = "Teens", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Teens",]$sum_temp,
        ylim= c(0,200),
-       lty = 2, pch = 21, cex = 1, main = "Teens", bg = "#669bbc",
+       lty = 2, pch = 21, cex = 1.2, main = "Teens", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_physical[data_ratio_to_plot_physical$part_age_cat == "Teens",]$sum_naive,
        ylim= c(0,200),
-       lty = 2, pch = 24, cex = 1, main = "Teens", bg = "#c1121f",
+       lty = 2, pch = 24, cex = 1.2, main = "Teens", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_physical[data_ratio_to_plot_physical$part_age_cat == "Teens",]$sum_temp,
        ylim= c(0,200),
-       lty = 2, pch = 24, cex = 1, main = "Teens", bg = "#669bbc",
+       lty = 2, pch = 24, cex = 1.2, main = "Teens", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-legend("topright", legend = c("All contacts (Average)", "All contacts (Temporal)",
-                              "Physical contacts (Average)", "Physical contacts (Temporal)"),
-       pch = c(21, 21, 24, 24), pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(country_list), labels=country_list)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(country_list), labels=country_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3, "Total number of weekly distinct contacts", cex = 1.2)
 plot(x = seq(1, length(country_list)), 
      y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Adult",]$sum_naive,
-     ylim= c(0,200), type = "n", xlab = "Country", ylab = "", main = "Adults", xaxt = "n")
+     ylim= c(0,200), type = "n", xlab = "Country", ylab = "", main = "Adults", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Adult",]$sum_naive,
        ylim= c(0,200),
-       lty = 2, pch = 21, cex = 1, main = "Adults", bg = "#c1121f",
+       lty = 2, pch = 21, cex = 1.2, main = "Adults", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Adult",]$sum_temp,
        ylim= c(0,200),
-       lty = 2, pch = 21, cex = 1, main = "Adults", bg = "#669bbc",
+       lty = 2, pch = 21, cex = 1.2, main = "Adults", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_physical[data_ratio_to_plot_physical$part_age_cat == "Adult",]$sum_naive,
        ylim= c(0,200),
-       lty = 2, pch = 24, cex = 1, main = "Adults", bg = "#c1121f",
+       lty = 2, pch = 24, cex = 1.2, main = "Adults", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_physical[data_ratio_to_plot_physical$part_age_cat == "Adult",]$sum_temp,
        ylim= c(0,200),
-       lty = 2, pch = 24, cex = 1, main = "Adults", bg = "#669bbc",
+       lty = 2, pch = 24, cex = 1.2, main = "Adults", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-legend("topright", legend = c("All contacts (Average)", "All contacts (Temporal)",
-                              "Physical contacts (Average)", "Physical contacts (Temporal)"),
-       pch = c(21, 21, 24, 24), pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(country_list), labels=country_list)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(country_list), labels=country_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3, "Total number of weekly distinct contacts", cex = 1.2)
 plot(x = seq(1, length(country_list)), 
      y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Elderly",]$sum_naive,
-     ylim= c(0,200), type = "n", xlab = "Country", ylab = "", main = "Elderly", xaxt = "n")
+     ylim= c(0,200), type = "n", xlab = "Country", ylab = "", main = "Elderly", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Elderly",]$sum_naive,
        ylim= c(0,200),
-       lty = 2, pch = 21, cex = 1, main = "Elderly", bg = "#c1121f",
+       lty = 2, pch = 21, cex = 1.2, main = "Elderly", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Elderly",]$sum_temp,
        ylim= c(0,200),
-       lty = 2, pch = 21, cex = 1, main = "Elderly", bg = "#669bbc",
+       lty = 2, pch = 21, cex = 1.2, main = "Elderly", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_physical[data_ratio_to_plot_physical$part_age_cat == "Elderly",]$sum_naive,
        ylim= c(0,200),
-       lty = 2, pch = 24, cex = 1, main = "Elderly", bg = "#c1121f",
+       lty = 2, pch = 24, cex = 1.2, main = "Elderly", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = data_ratio_to_plot_physical[data_ratio_to_plot_physical$part_age_cat == "Elderly",]$sum_temp,
        ylim= c(0,200),
-       lty = 2, pch = 24, cex = 1, main = "Elderly", bg = "#669bbc",
+       lty = 2, pch = 24, cex = 1.2, main = "Elderly", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-legend("topright", legend = c("All contacts (Average)", "All contacts (Temporal)",
-                              "Physical contacts (Average)", "Physical contacts (Temporal)"),
-       pch = c(21, 21, 24, 24), pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(country_list), labels=country_list)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(country_list), labels=country_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3, "Total number of weekly distinct contacts", cex = 1.2)
+par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0.5, 0), mar = c(0, 0, 0.5, 0), new = TRUE)
+plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
+legend(x = "bottom",
+       legend = c("All contacts (Naive)", "All contacts (Frequency-based)",
+                  "Physical contacts (Naive)", "Physical contacts (Frequency-based)"),
+       pch = c(21, 21, 24, 24), pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc"),
+       cex=1.35, bty = "n", ncol = 2)
 dev.off()
 
 #------- plot the number of crude numbers (CoMix) - physical/ all contacts
@@ -241,66 +249,65 @@ data_ratio_to_plot_allcnt <- data_ratio_to_plot_comix[data_ratio_to_plot_comix$c
 data_ratio_to_plot_physical <- data_ratio_to_plot_comix[data_ratio_to_plot_comix$cnt_type == "physical",]
 
 png(filename = "results/CoMix/crude_allcontacts_results.png", width = 600*1.5, height = 600*1.2)
-par(mfrow = c(2,2))
+par(oma = c(3,1,0.85,1), mfrow = c(2, 2), mar = c(4.75, 4, 3, 1))
 plot(x = seq(1, length(wave_list)), 
      y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Children",]$sum_naive,
-     ylim= c(0,40), type = "n", xlab = "Wave", ylab = "", main = "Children", xaxt = "n")
+     ylim= c(0,40), type = "n", xlab = "Wave", ylab = "", main = "Children", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(wave_list)), 
        y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Children",]$sum_naive,
        ylim= c(0,40), type = "b",
-       lty = 2, pch = 21, cex = 1, main = "Children", bg = "#c1121f",
+       lty = 2, pch = 21, cex = 1.2, main = "Children", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Children",]$sum_temp,
        ylim= c(0,40), type = "b",
-       lty = 2, pch = 21, cex = 1, main = "Children", bg = "#669bbc",
+       lty = 2, pch = 21, cex = 1.2, main = "Children", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = data_ratio_to_plot_physical[data_ratio_to_plot_physical$part_age_cat == "Children",]$sum_naive,
        ylim= c(0,40), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Children", bg = "#c1121f",
+       lty = 2, pch = 24, cex = 1.2, main = "Children", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = data_ratio_to_plot_physical[data_ratio_to_plot_physical$part_age_cat == "Children",]$sum_temp,
        ylim= c(0,40), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Children", bg = "#669bbc",
+       lty = 2, pch = 24, cex = 1.2, main = "Children", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-legend("topright", legend = c("All contacts (Average)", "All contacts (Temporal)",
-                              "Physical contacts (Average)", "Physical contacts (Temporal)"),
-       pch = c(21, 21, 24, 24), pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(wave_list), labels=wave_list)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_list), labels=wave_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3, "Total number of weekly distinct contacts", cex = 1.2)
 plot(x = seq(1, length(wave_list)), 
      y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Teens",]$sum_naive,
-     ylim= c(0,40), type = "n", xlab = "Wave", ylab = "", main = "Teens", xaxt = "n")
+     ylim= c(0,40), type = "n", xlab = "Wave", ylab = "", main = "Teens", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(wave_list)), 
        y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Teens",]$sum_naive,
        ylim= c(0,40), type = "b",
-       lty = 2, pch = 21, cex = 1, main = "Teens", bg = "#c1121f",
+       lty = 2, pch = 21, cex = 1.2, main = "Teens", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Teens",]$sum_temp,
        ylim= c(0,40), type = "b",
-       lty = 2, pch = 21, cex = 1, main = "Teens", bg = "#669bbc",
+       lty = 2, pch = 21, cex = 1.2, main = "Teens", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = data_ratio_to_plot_physical[data_ratio_to_plot_physical$part_age_cat == "Teens",]$sum_naive,
        ylim= c(0,40), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Teens", bg = "#c1121f",
+       lty = 2, pch = 24, cex = 1.2, main = "Teens", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = data_ratio_to_plot_physical[data_ratio_to_plot_physical$part_age_cat == "Teens",]$sum_temp,
        ylim= c(0,40), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Teens", bg = "#669bbc",
+       lty = 2, pch = 24, cex = 1.2, main = "Teens", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-legend("topright", legend = c("All contacts (Average)", "All contacts (Temporal)",
-                              "Physical contacts (Average)", "Physical contacts (Temporal)"),
-       pch = c(21, 21, 24, 24), pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(wave_list), labels=wave_list)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_list), labels=wave_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3, "Total number of weekly distinct contacts", cex = 1.2)
 plot(x = seq(1, length(wave_list)), 
      y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Adult",]$sum_naive,
-     ylim= c(0,40), type = "n", xlab = "Wave", ylab = "", main = "Adults", xaxt = "n")
+     ylim= c(0,40), type = "n", xlab = "Wave", ylab = "", main = "Adults", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(wave_list)), 
        y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Adult",]$sum_naive,
        ylim= c(0,40), type = "b",
@@ -321,14 +328,13 @@ points(x = seq(1, length(wave_list)),
        ylim= c(0,40), type = "b",
        lty = 2, pch = 24, cex = 1, main = "Adults", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-legend("topright", legend = c("All contacts (Average)", "All contacts (Temporal)",
-                              "Physical contacts (Average)", "Physical contacts (Temporal)"),
-       pch = c(21, 21, 24, 24), pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(wave_list), labels=wave_list)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_list), labels=wave_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3, "Total number of weekly distinct contacts", cex = 1.2)
 plot(x = seq(1, length(wave_list)), 
      y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Elderly",]$sum_naive,
-     ylim= c(0,40), type = "n", xlab = "Wave", ylab = "", main = "Elderly", xaxt = "n")
+     ylim= c(0,40), type = "n", xlab = "Wave", ylab = "", main = "Elderly", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(wave_list)), 
        y = data_ratio_to_plot_allcnt[data_ratio_to_plot_allcnt$part_age_cat == "Elderly",]$sum_naive,
        ylim= c(0,40), type = "b",
@@ -349,12 +355,18 @@ points(x = seq(1, length(wave_list)),
        ylim= c(0,40), type = "b",
        lty = 2, pch = 24, cex = 1, main = "Elderly", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-legend("topright", legend = c("All contacts (Average)", "All contacts (Temporal)",
-                              "Physical contacts (Average)", "Physical contacts (Temporal)"),
-       pch = c(21, 21, 24, 24), pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(wave_list), labels=wave_list)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_list), labels=wave_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3, "Total number of weekly distinct contacts", cex = 1.2)
+par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0.5, 0), mar = c(0, 0, 0.5, 0), new = TRUE)
+plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
+legend(x = "bottom",
+       legend = c("All contacts (Naive)", "All contacts (Frequency-based)",
+                  "Physical contacts (Naive)", "Physical contacts (Frequency-based)"),
+       pch = c(21, 21, 24, 24), pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc"),
+       cex=1.35, bty = "n", ncol = 2)
 dev.off()
+
 
 #------- plot the ratio over temporal and observed weekly distinct contacts for physical (POLYMOD)
 storage_list_physical <- list()
@@ -378,14 +390,36 @@ plot_output_polymod_ci <- ggplot(data = storage_data_physical_withci) +
   geom_point(aes(part_age_cat, mean), color="darkslateblue") +
   geom_errorbar(aes(x = part_age_cat, ymin=lower, ymax=upper, width=0.15), color="darkslateblue") +
   facet_wrap(~ country, ncol = 2) +
-  ylab("Ratio of temporal to naive total number of distinct contacts") +
+  ylab("Ratio of frequency-based to naive \n total number of distinct contacts") +
   xlab("Age category") +
   theme_classic() +
   theme(legend.position = "none",
         text = element_text(size = 16),
         strip.background = element_rect(fill = "#edf2f4"))
 ggsave("results/POLYMOD/ggplot_ratio_onlyphysical_results_withci.png",
-       width = 25, height = 25, units = "cm")
+       width = 20, height = 20, units = "cm")
+
+temp <- ggplot(data = storage_data_physical_withci) +
+  geom_point(aes(country, mean, color = country),
+             position = position_dodge(width = 0.5)) +
+  geom_errorbar(aes(x = country, ymin=lower, ymax=upper, width=0.5,
+                    color = country),
+                position = position_dodge(width = 0.5),
+                linewidth = 1) +
+  facet_wrap(~ part_age_cat, nrow = 1) +
+  ylab("Ratio of frequency-based to naive \n total number of distinct contacts") +
+  xlab("Country") +
+  scale_color_manual(values = color_polymod) +
+  theme_bw() +
+  theme(legend.position = "top",
+        legend.title=element_blank(),
+        text = element_text(size = 20),
+        strip.background = element_rect(fill = "#edf2f4"),
+        strip.text = element_text(face = "bold")) +
+  guides(colour = guide_legend(nrow = 1))
+
+ggsave("results/POLYMOD/ggplot_ratio_onlyphysical_results_withci_temp.png",
+       width = 1350*3, height = 675*3, units = "px")
 
 #------- plot the ratio over temporal and observed weekly distinct contacts for physical (CoMix)
 storage_list_physical <- list()
@@ -405,11 +439,12 @@ if(!file.exists("rds/CoMix/data_temp_physical_all_withci.rds")){
 
 storage_data_physical_withci <- do.call(rbind, storage_list_physical)
 
-png(filename = "results/CoMix/ratio_allcontacts_onlyphysical_results_withci.png", width = 600*1.2, height = 600)
-par(oma = c(3,1,0.75,1), mfrow = c(2, 2), mar = c(3, 4, 3, 1))
+png(filename = "results/CoMix/ratio_allcontacts_onlyphysical_results_withci.png", width = 600*1.3, height = 700)
+par(oma = c(3,1,0.85,1), mfrow = c(2, 2), mar = c(4.75, 4, 3, 1))
 plot(x = seq(1, length(wave_list)), 
      y = storage_data_physical_withci[storage_data_physical_withci$part_age_cat == "Children",]$mean,
-     ylim= c(0.1,0.55), type = "n", xlab = "Wave", ylab = "", main = "Children", xaxt = "n")
+     ylim= c(0.1,0.55), type = "n", xlab = "Wave", ylab = "", main = "Children", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_list)),
        y0 = storage_data_physical_withci[storage_data_physical_withci$part_age_cat == "Children",]$lower,
        x1 = seq(1, length(wave_list)),
@@ -420,12 +455,14 @@ points(x = seq(1, length(wave_list)),
        ylim= c(0.1,0.55), type = "b",
        lty = 2, pch = 22, cex = 1, main = "Children", bg = "darkslateblue",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_list), labels=wave_list)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_list), labels=wave_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Ratio of frequency-based to naive", cex = 1.2)
+mtext(side = 2, line = 2.5, "total number of distinct contacts", cex = 1.2)
 plot(x = seq(1, length(wave_list)), 
      y = storage_data_physical_withci[storage_data_physical_withci$part_age_cat == "Teens",]$mean,
-     ylim= c(0.1,0.55), type = "n", xlab = "Wave", ylab = "", main = "Teens", xaxt = "n")
+     ylim= c(0.1,0.55), type = "n", xlab = "Wave", ylab = "", main = "Teens", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_list)),
        y0 = storage_data_physical_withci[storage_data_physical_withci$part_age_cat == "Teens",]$lower,
        x1 = seq(1, length(wave_list)),
@@ -436,12 +473,14 @@ points(x = seq(1, length(wave_list)),
        ylim= c(0.1,0.55), type = "b",
        lty = 2, pch = 22, cex = 1, main = "Teens", bg = "darkslateblue",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_list), labels=wave_list)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_list), labels=wave_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Ratio of frequency-based to naive", cex = 1.2)
+mtext(side = 2, line = 2.5, "total number of distinct contacts", cex = 1.2)
 plot(x = seq(1, length(wave_list)), 
      y = storage_data_physical_withci[storage_data_physical_withci$part_age_cat == "Adult",]$mean,
-     ylim= c(0.1,0.55), type = "n", xlab = "Wave", ylab = "", main = "Adults", xaxt = "n")
+     ylim= c(0.1,0.55), type = "n", xlab = "Wave", ylab = "", main = "Adults", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_list)),
        y0 = storage_data_physical_withci[storage_data_physical_withci$part_age_cat == "Adult",]$lower,
        x1 = seq(1, length(wave_list)),
@@ -451,14 +490,16 @@ points(x = seq(1, length(wave_list)),
        y = storage_data_physical_withci[storage_data_physical_withci$part_age_cat == "Adult",]$mean,
        ylim= c(0.1,0.55), type = "b",
        lty = 2, pch = 22, cex = 1, main = "Adults", bg = "darkslateblue",
-       cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_list), labels=wave_list)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
-mtext(side = 1, line = 2.5, "Country", cex = 1.2)
+       cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n",
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+axis(1, at = 1:length(wave_list), labels=wave_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Ratio of frequency-based to naive", cex = 1.2)
+mtext(side = 2, line = 2.5, "total number of distinct contacts", cex = 1.2)
 plot(x = seq(1, length(wave_list)), 
      y = storage_data_physical_withci[storage_data_physical_withci$part_age_cat == "Elderly",]$mean,
-     ylim= c(0.1,0.55), type = "n", xlab = "Wave", ylab = "", main = "Elderly", xaxt = "n")
+     ylim= c(0.1,0.55), type = "n", xlab = "Wave", ylab = "", main = "Elderly", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_list)),
        y0 = storage_data_physical_withci[storage_data_physical_withci$part_age_cat == "Elderly",]$lower,
        x1 = seq(1, length(wave_list)),
@@ -469,15 +510,15 @@ points(x = seq(1, length(wave_list)),
        ylim= c(0.1,0.55), type = "b",
        lty = 2, pch = 22, cex = 1, main = "Elderly", bg = "darkslateblue",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_list), labels=wave_list)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
-mtext(side = 1, line = 2.5, "Country", cex = 1.2)
+axis(1, at = 1:length(wave_list), labels=wave_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Ratio of frequency-based to naive", cex = 1.2)
+mtext(side = 2, line = 2.5, "total number of distinct contacts", cex = 1.2)
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
 dev.off()
 
-#------- plot the ratio over temporal and observed weekly distinct contacts all contacts
+#------- plot the ratio over temporal and observed weekly distinct contacts all contacts (POLYMOD)
 storage_list_allcontacts <- list()
 if(!file.exists("rds/POLYMOD/data_temp_allcontacts_all_withci.rds")){
   for(i in 1:length(country_list)){
@@ -495,77 +536,27 @@ if(!file.exists("rds/POLYMOD/data_temp_allcontacts_all_withci.rds")){
 
 storage_data_allcontacts_withci <- do.call(rbind, storage_list_allcontacts)
 
-png(filename = "results/POLYMOD/ratio_allcontacts_results_withci.png", width = 600*1.2, height = 600)
-par(oma = c(3,1,0.75,1), mfrow = c(2, 2), mar = c(3, 4, 3, 1))
-plot(x = seq(1, length(country_list)), 
-     y = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Children",]$mean,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Children", xaxt = "n")
-arrows(x0 = seq(1, length(country_list)),
-       y0 = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Children",]$lower,
-       x1 = seq(1, length(country_list)),
-       y1 = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Children",]$upper,
-       angle = 90, code = 3, col = "darkslateblue", length = 0.05, lwd = 1.5)
-points(x = seq(1, length(country_list)), 
-       y = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Children",]$mean,
-       ylim= c(0,1),
-       lty = 2, pch = 22, cex = 1, main = "Children", bg = "darkslateblue",
-       cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(country_list), labels=country_list)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
-plot(x = seq(1, length(country_list)), 
-     y = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Teens",]$mean,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Teens", xaxt = "n")
-arrows(x0 = seq(1, length(country_list)),
-       y0 = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Teens",]$lower,
-       x1 = seq(1, length(country_list)),
-       y1 = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Teens",]$upper,
-       angle = 90, code = 3, col = "darkslateblue", length = 0.05, lwd = 1.5)
-points(x = seq(1, length(country_list)), 
-       y = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Teens",]$mean,
-       ylim= c(0,1),
-       lty = 2, pch = 22, cex = 1, main = "Teens", bg = "darkslateblue",
-       cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(country_list), labels=country_list)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
-plot(x = seq(1, length(country_list)), 
-     y = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Adult",]$mean,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Adults", xaxt = "n")
-arrows(x0 = seq(1, length(country_list)),
-       y0 = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Adult",]$lower,
-       x1 = seq(1, length(country_list)),
-       y1 = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Adult",]$upper,
-       angle = 90, code = 3, col = "darkslateblue", length = 0.05, lwd = 1.5)
-points(x = seq(1, length(country_list)), 
-       y = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Adult",]$mean,
-       ylim= c(0,1),
-       lty = 2, pch = 22, cex = 1, main = "Adults", bg = "darkslateblue",
-       cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(country_list), labels=country_list)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
-mtext(side = 1, line = 2.5, "Country", cex = 1.2)
-plot(x = seq(1, length(country_list)), 
-     y = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Elderly",]$mean,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Elderly", xaxt = "n")
-arrows(x0 = seq(1, length(country_list)),
-       y0 = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Elderly",]$lower,
-       x1 = seq(1, length(country_list)),
-       y1 = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Elderly",]$upper,
-       angle = 90, code = 3, col = "darkslateblue", length = 0.05, lwd = 1.5)
-points(x = seq(1, length(country_list)), 
-       y = storage_data_allcontacts_withci[storage_data_allcontacts_withci$part_age_cat == "Elderly",]$mean,
-       ylim= c(0,1),
-       lty = 2, pch = 22, cex = 1, main = "Elderly", bg = "darkslateblue",
-       cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(country_list), labels=country_list)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
-mtext(side = 1, line = 2.5, "Country", cex = 1.2)
-par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
-plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
-dev.off()
+temp_allcontacts <- ggplot(data = storage_data_allcontacts_withci) +
+  geom_point(aes(country, mean, color = country),
+             position = position_dodge(width = 0.5)) +
+  geom_errorbar(aes(x = country, ymin=lower, ymax=upper, width=0.5,
+                    color = country),
+                position = position_dodge(width = 0.5),
+                linewidth = 1) +
+  facet_wrap(~ part_age_cat, nrow = 1) +
+  ylab("Ratio of frequency-based to naive \n total number of distinct contacts") +
+  xlab("Country") +
+  scale_color_manual(values = color_polymod) +
+  theme_bw() +
+  theme(legend.position = "top",
+        legend.title=element_blank(),
+        text = element_text(size = 18),
+        strip.background = element_rect(fill = "#edf2f4"),
+        strip.text = element_text(face = "bold")) +
+  guides(colour = guide_legend(nrow = 1))
+
+ggsave("results/POLYMOD/ggplot_ratio_allcontacts_results_withci_temp.png",
+       width = 1350*3, height = 675*3, units = "px")
 
 #------- attack rates for physical contacts (POLYMOD)
 nboot = 3000
@@ -758,24 +749,42 @@ output_correction_polymod <- rbind(cbind(correction_flu, scenario = "Influenza-l
 output_correction_polymod$scenario <- factor(output_correction_polymod$scenario,
                                              levels = c("Influenza-like", "COVID-19-like"))
 
-output_correction_polymod <- ggplot(data = output_correction_polymod) +
-  geom_point(aes(age_cat, correction, color = scenario),
-             position = position_dodge(.4)) +
-  geom_errorbar(aes(x = age_cat, ymin=lower, ymax=upper, width=0.3,
-                    color = scenario),
-                position = position_dodge(.4)) +
-  facet_wrap(~ country, ncol = 4) +
+output_correction_polymod_influenza <- ggplot(data = output_correction_polymod[output_correction_polymod$scenario == "Influenza-like",]) +
+  geom_point(aes(country, correction, col = country)) +
+  geom_errorbar(aes(x = country, ymin=lower, ymax=upper, width=0.3, col = country), linewidth = 1) +
+  facet_wrap(~ age_cat, ncol = 4) +
   ylab("Changes in attack rates") +
-  xlab("Age category") +
-  scale_color_manual(values = c("red", "blue")) +
-  theme_classic() +
+  xlab("Country") +
+  theme_bw() +
+  scale_color_manual(values = color_polymod) +
   theme(legend.position = "top",
         legend.title = element_blank(),
-        text = element_text(size = 18),
-        strip.background = element_rect(fill = "#edf2f4"))
+        text = element_text(size = 20),
+        strip.background = element_rect(fill = "#edf2f4"),
+        strip.text = element_text(face = "bold")) + 
+  guides(colour = guide_legend(nrow = 1))
 
-ggsave("results/POLYMOD/ggplot_correction_onlyphysical_results_withci.png",
-       width = 35, height = 20, units = "cm")
+ggsave("results/POLYMOD/ggplot_correction_onlyphysical_results_withci_influenza.png",
+       width = 35, height = 16, units = "cm")
+
+output_correction_polymod_covid <- ggplot(data = output_correction_polymod[output_correction_polymod$scenario == "COVID-19-like",]) +
+  geom_point(aes(country, correction, col = country)) +
+  geom_errorbar(aes(x = country, ymin=lower, ymax=upper, width=0.3, col = country), linewidth = 1) +
+  facet_wrap(~ age_cat, ncol = 4) +
+  ylab("Changes in attack rates") +
+  xlab("Country") +
+  theme_bw() +
+  scale_color_manual(values = color_polymod) +
+  theme(legend.position = "top",
+        legend.title = element_blank(),
+        text = element_text(size = 20),
+        strip.background = element_rect(fill = "#edf2f4")) + 
+  guides(colour = guide_legend(nrow = 1),
+         strip.text = element_text(face = "bold"))
+
+ggsave("results/POLYMOD/ggplot_correction_onlyphysical_results_withci_covid.png",
+       width = 35, height = 16, units = "cm")
+
 
 #------- attack rates for physical contacts (CoMix)
 nboot = 3000
@@ -919,10 +928,11 @@ output_covid <- calculate_ar_comix_comparison_with_ci(ar_baseline_covid,
                                                       ar_temporal_covid)
 
 png(filename = "results/CoMix/ratio_onlyphysical_attackrates_flu_withci.png", width = 650*1.2, height = 600)
-par(oma = c(3,1,0.75,1), mfrow = c(2, 2), mar = c(3, 4, 3, 1))
+par(oma = c(3,1,0.85,1), mfrow = c(2, 2), mar = c(4.75, 4, 3, 1))
 plot(x = seq(1, length(wave_epi)), 
      y = output_flu[output_flu$age_cat == "Children",]$attack_rates,
-     ylim= c(0,1.2), type = "n", xlab = "Country", ylab = "", main = "Children", xaxt = "n")
+     ylim= c(0,1.2), type = "n", xlab = "", ylab = "", main = "Children", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_epi)),
        y0 = output_flu[output_flu$age_cat == "Children",]$lower,
        x1 = seq(1, length(wave_epi)),
@@ -933,12 +943,15 @@ points(x = seq(1, length(wave_epi)),
        ylim= c(0,1.2),
        lty = 2, pch = 22, cex = 1, main = "Children", bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_epi), labels=wave_epi)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_epi), labels=wave_epi,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Ratio of frequency-based to naive", cex = 1.2)
+mtext(side = 2, line = 2.5, "attack rates", cex = 1.2)
+mtext(side = 1, line = 2.5, "Wave", cex = 1.2)
 plot(x = seq(1, length(wave_epi)), 
      y = output_flu[output_flu$age_cat == "Teens",]$attack_rates,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Teens", xaxt = "n")
+     ylim= c(0,1), type = "n", xlab = "", ylab = "", main = "Teens", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_epi)),
        y0 = output_flu[output_flu$age_cat == "Teens",]$lower,
        x1 = seq(1, length(wave_epi)),
@@ -949,12 +962,15 @@ points(x = seq(1, length(wave_epi)),
        ylim= c(0,1),
        lty = 2, pch = 22, cex = 1, main = "Teens", bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_epi), labels=wave_epi)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_epi), labels=wave_epi,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Ratio of frequency-based to naive", cex = 1.2)
+mtext(side = 2, line = 2.5, "attack rates", cex = 1.2)
+mtext(side = 1, line = 2.5, "Wave", cex = 1.2)
 plot(x = seq(1, length(wave_epi)), 
      y = output_flu[output_flu$age_cat == "Adult",]$attack_rates,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Adults", xaxt = "n")
+     ylim= c(0,1), type = "n", xlab = "", ylab = "", main = "Adults", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_epi)),
        y0 = output_flu[output_flu$age_cat == "Adult",]$lower,
        x1 = seq(1, length(wave_epi)),
@@ -965,13 +981,15 @@ points(x = seq(1, length(wave_epi)),
        ylim= c(0,1),
        lty = 2, pch = 22, cex = 1, main = "Adults", bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_epi), labels=wave_epi)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_epi), labels=wave_epi,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Ratio of frequency-based to naive", cex = 1.2)
+mtext(side = 2, line = 2.5, "attack rates", cex = 1.2)
 mtext(side = 1, line = 2.5, "Wave", cex = 1.2)
 plot(x = seq(1, length(wave_epi)), 
      y = output_flu[output_flu$age_cat == "Elderly",]$attack_rates,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Elderly", xaxt = "n")
+     ylim= c(0,1), type = "n", xlab = "", ylab = "", main = "Elderly", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_epi)),
        y0 = output_flu[output_flu$age_cat == "Elderly",]$lower,
        x1 = seq(1, length(wave_epi)),
@@ -982,19 +1000,21 @@ points(x = seq(1, length(wave_epi)),
        ylim= c(0,1),
        lty = 2, pch = 22, cex = 1, main = "Elderly", bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_epi), labels=wave_epi)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_epi), labels=wave_epi,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Ratio of frequency-based to naive", cex = 1.2)
+mtext(side = 2, line = 2.5, "attack rates", cex = 1.2)
 mtext(side = 1, line = 2.5, "Wave", cex = 1.2)
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
 dev.off()
 
 png(filename = "results/CoMix/ratio_onlyphysical_attackrates_covid_withci.png", width = 650*1.2, height = 600)
-par(oma = c(3,1,0.75,1), mfrow = c(2, 2), mar = c(3, 4, 3, 1))
+par(oma = c(3,1,0.85,1), mfrow = c(2, 2), mar = c(4.75, 4, 3, 1))
 plot(x = seq(1, length(wave_epi)), 
      y = output_covid[output_covid$age_cat == "Children",]$attack_rates,
-     ylim= c(0,1.2), type = "n", xlab = "Country", ylab = "", main = "Children", xaxt = "n")
+     ylim= c(0,1.2), type = "n", xlab = "", ylab = "", main = "Children", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_epi)),
        y0 = output_covid[output_covid$age_cat == "Children",]$lower,
        x1 = seq(1, length(wave_epi)),
@@ -1005,12 +1025,15 @@ points(x = seq(1, length(wave_epi)),
        ylim= c(0,1.2),
        lty = 2, pch = 22, cex = 1, main = "Children", bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_epi), labels=wave_epi)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_epi), labels=wave_epi,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Ratio of frequency-based to naive", cex = 1.2)
+mtext(side = 2, line = 2.5, "attack rates", cex = 1.2)
+mtext(side = 1, line = 2.5, "Wave", cex = 1.2)
 plot(x = seq(1, length(wave_epi)), 
      y = output_covid[output_covid$age_cat == "Teens",]$attack_rates,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Teens", xaxt = "n")
+     ylim= c(0,1), type = "n", xlab = "", ylab = "", main = "Teens", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_epi)),
        y0 = output_covid[output_covid$age_cat == "Teens",]$lower,
        x1 = seq(1, length(wave_epi)),
@@ -1021,12 +1044,15 @@ points(x = seq(1, length(wave_epi)),
        ylim= c(0,1),
        lty = 2, pch = 22, cex = 1, main = "Teens", bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_epi), labels=wave_epi)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_epi), labels=wave_epi,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Ratio of frequency-based to naive", cex = 1.2)
+mtext(side = 2, line = 2.5, "attack rates", cex = 1.2)
+mtext(side = 1, line = 2.5, "Wave", cex = 1.2)
 plot(x = seq(1, length(wave_epi)), 
      y = output_covid[output_covid$age_cat == "Adult",]$attack_rates,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Adults", xaxt = "n")
+     ylim= c(0,1), type = "n", xlab = "", ylab = "", main = "Adults", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_epi)),
        y0 = output_covid[output_covid$age_cat == "Adult",]$lower,
        x1 = seq(1, length(wave_epi)),
@@ -1037,13 +1063,15 @@ points(x = seq(1, length(wave_epi)),
        ylim= c(0,1),
        lty = 2, pch = 22, cex = 1, main = "Adults", bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_epi), labels=wave_epi)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_epi), labels=wave_epi,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Ratio of frequency-based to naive", cex = 1.2)
+mtext(side = 2, line = 2.5, "attack rates", cex = 1.2)
 mtext(side = 1, line = 2.5, "Wave", cex = 1.2)
 plot(x = seq(1, length(wave_epi)), 
      y = output_covid[output_covid$age_cat == "Elderly",]$attack_rates,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Elderly", xaxt = "n")
+     ylim= c(0,1), type = "n", xlab = "", ylab = "", main = "Elderly", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_epi)),
        y0 = output_covid[output_covid$age_cat == "Elderly",]$lower,
        x1 = seq(1, length(wave_epi)),
@@ -1054,9 +1082,10 @@ points(x = seq(1, length(wave_epi)),
        ylim= c(0,1),
        lty = 2, pch = 22, cex = 1, main = "Elderly", bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_epi), labels=wave_epi)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_epi), labels=wave_epi,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Ratio of frequency-based to naive", cex = 1.2)
+mtext(side = 2, line = 2.5, "attack rates", cex = 1.2)
 mtext(side = 1, line = 2.5, "Wave", cex = 1.2)
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
@@ -1189,39 +1218,45 @@ output_pi_covid <- calculate_pi_comparison_with_ci(pi_baseline_covid,
                                                 pi_temporal_covid)
 
 png(filename = "results/POLYMOD/ratio_onlyphysical_peakincidence_withci.png", width = 650*1.3, height = 450)
-par(oma = c(3,1,0.75,1), mfrow = c(1, 2), mar = c(3, 4, 3, 1))
+par(oma = c(2,1,0.75,1), mfrow = c(1, 2), mar = c(4.5, 4, 4, 1.5))
 plot(x = seq(1, length(country_list)), 
      y = output_pi_flu$peak_incidence,
-     ylim= c(0,1.25), type = "n", xlab = "Country", ylab = "", main = "Influenza-like", xaxt = "n")
+     ylim= c(0,1.25), type = "n", xlab = "Country", ylab = "", main = "Influenza-like", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(country_list)),
        y0 = output_pi_flu$lower,
        x1 = seq(1, length(country_list)),
        y1 = output_pi_flu$upper,
-       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 2,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5, xaxt = "n", yaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = output_pi_flu$peak_incidence,
        ylim= c(0,1.25),
        lty = 2, pch = 22, cex = 1, bg = "darkolivegreen4",
-       cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(country_list), labels=country_list)
-mtext(side = 2, line = 3, "Temporal over naive peak incidence", cex = 1.2)
+       cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n", yaxt = "n")
+axis(1, at = 1:length(country_list), labels=country_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Frequency-based over naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "peak incidence", cex = 1.5)
 plot(x = seq(1, length(country_list)), 
      y = output_pi_covid$peak_incidence,
-     ylim= c(0,1.25), type = "n", xlab = "Country", ylab = "", main = "COVID-19-like", xaxt = "n")
+     ylim= c(0,1.25), type = "n", xlab = "Country", ylab = "", main = "COVID-19-like", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(country_list)),
        y0 = output_pi_covid$lower,
        x1 = seq(1, length(country_list)),
        y1 = output_pi_covid$upper,
-       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 2,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5, xaxt = "n", yaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = output_pi_covid$peak_incidence,
        ylim= c(0,1.25),
        lty = 2, pch = 22, cex = 1, bg = "darkolivegreen4",
-       cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(country_list), labels=country_list)
-mtext(side = 2, line = 3, "Temporal over naive peak incidence", cex = 1.2)
-par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
-plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
+       cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n", yaxt = "n")
+axis(1, at = 1:length(country_list), labels=country_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Frequency-based over naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "peak incidence", cex = 1.5)
 dev.off()
 
 #------- peak incidence for physical contacts (CoMix)
@@ -1351,41 +1386,48 @@ output_pi_covid <- calculate_pi_comix_comparison_with_ci(pi_baseline_covid,
                                                          pi_temporal_covid)
 
 png(filename = "results/CoMix/ratio_onlyphysical_peakincidence_withci.png", width = 650*1.3, height = 450)
-par(oma = c(3,1,0.75,1), mfrow = c(1, 2), mar = c(3, 4, 3, 1))
+par(oma = c(2,1,0.75,1), mfrow = c(1, 2), mar = c(4.5, 4, 4, 1.5))
 plot(x = seq(1, length(wave_epi)), 
      y = output_pi_flu$peak_incidence,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Flu", xaxt = "n")
+     ylim= c(0,1), type = "n", xlab = "Wave", ylab = "", main = "Influenza-like", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_epi)),
        y0 = output_pi_flu$lower,
        x1 = seq(1, length(wave_epi)),
        y1 = output_pi_flu$upper,
-       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 2,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5, xaxt = "n", yaxt = "n")
 points(x = seq(1, length(wave_epi)), 
        y = output_pi_flu$peak_incidence,
-       ylim= c(0,1),
+       ylim= c(0,1.25),
        lty = 2, pch = 22, cex = 1, bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_epi), labels=wave_epi)
-mtext(side = 2, line = 3, "Temporal over naive peak incidence", cex = 1.2)
+axis(1, at = 1:length(wave_epi), labels=wave_epi,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Frequency-based over naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "peak incidence", cex = 1.5)
 plot(x = seq(1, length(wave_epi)), 
      y = output_pi_covid$peak_incidence,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "COVID-19", xaxt = "n")
+     ylim= c(0,1), type = "n", xlab = "Wave", ylab = "", main = "COVID-19", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_epi)),
        y0 = output_pi_covid$lower,
        x1 = seq(1, length(wave_epi)),
        y1 = output_pi_covid$upper,
-       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 2,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5, xaxt = "n", yaxt = "n")
 points(x = seq(1, length(wave_epi)), 
        y = output_pi_covid$peak_incidence,
-       ylim= c(0,1),
+       ylim= c(0,1.25),
        lty = 2, pch = 22, cex = 1, bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_epi), labels=wave_epi)
-mtext(side = 2, line = 3, "Temporal over naive peak incidence", cex = 1.2)
+axis(1, at = 1:length(wave_epi), labels=wave_epi,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Frequency-based over naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "peak incidence", cex = 1.5)
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
 dev.off()
-
 
 #------- epidemic duration for physical contacts (POLYMOD)
 nboot = 3000
@@ -1514,37 +1556,45 @@ output_ed_covid <- calculate_ed_comparison_with_ci(ed_baseline_covid,
                                                    ed_temporal_covid)
 
 png(filename = "results/POLYMOD/ratio_onlyphysical_epidur_withci.png", width = 650*1.3, height = 450)
-par(oma = c(3,1,0.75,1), mfrow = c(1, 2), mar = c(3, 4, 3, 1))
+par(oma = c(2,1,0.75,1), mfrow = c(1, 2), mar = c(4.5, 4, 4, 1.5))
 plot(x = seq(1, length(country_list)), 
      y = output_ed_flu$epidemic_duration,
-     ylim= c(0,1.25), type = "n", xlab = "Country", ylab = "", main = "Influenza-like", xaxt = "n")
+     ylim= c(0,1.25), type = "n", xlab = "Country", ylab = "", main = "Influenza-like", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(country_list)),
        y0 = output_ed_flu$lower,
        x1 = seq(1, length(country_list)),
        y1 = output_ed_flu$upper,
-       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 2,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5, xaxt = "n", yaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = output_ed_flu$epidemic_duration,
        ylim= c(0,1.25),
        lty = 2, pch = 22, cex = 1, bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(country_list), labels=country_list)
-mtext(side = 2, line = 3, "Temporal over naive epidemic duration", cex = 1.2)
+axis(1, at = 1:length(country_list), labels=country_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Frequency-based over naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "epidemic duration", cex = 1.5)
 plot(x = seq(1, length(country_list)), 
      y = output_ed_covid$epidemic_duration,
-     ylim= c(0,1.25), type = "n", xlab = "Country", ylab = "", main = "COVID-19-like", xaxt = "n")
+     ylim= c(0,1.25), type = "n", xlab = "Country", ylab = "", main = "COVID-19-like", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(country_list)),
        y0 = output_ed_covid$lower,
        x1 = seq(1, length(country_list)),
        y1 = output_ed_covid$upper,
-       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 2,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5, xaxt = "n", yaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = output_ed_covid$epidemic_duration,
        ylim= c(0,1.25),
        lty = 2, pch = 22, cex = 1, bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(country_list), labels=country_list)
-mtext(side = 2, line = 3, "Temporal over naive epidemic duration", cex = 1.2)
+axis(1, at = 1:length(country_list), labels=country_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Frequency-based over naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "peak incidence", cex = 1.5)
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
 dev.off()
@@ -1676,40 +1726,49 @@ output_ed_covid <- calculate_ed_comparison_with_ci(ed_baseline_covid,
                                                    ed_temporal_covid)
 
 png(filename = "results/CoMix/ratio_onlyphysical_epidur_withci.png", width = 650*1.3, height = 450)
-par(oma = c(3,1,0.75,1), mfrow = c(1, 2), mar = c(3, 4, 3, 1))
+par(oma = c(2,1,0.75,1), mfrow = c(1, 2), mar = c(4.5, 4, 4, 1.5))
 plot(x = seq(1, length(wave_epi)), 
      y = output_ed_flu$epidemic_duration,
-     ylim= c(0,1.5), type = "n", xlab = "Wave", ylab = "", main = "Flu", xaxt = "n")
+     ylim= c(0,1.5), type = "n", xlab = "Wave", ylab = "", main = "Influenza-like", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_epi)),
        y0 = output_ed_flu$lower,
        x1 = seq(1, length(wave_epi)),
        y1 = output_ed_flu$upper,
-       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 2,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5, xaxt = "n", yaxt = "n")
 points(x = seq(1, length(wave_epi)), 
        y = output_ed_flu$epidemic_duration,
        ylim= c(0,1.5),
        lty = 2, pch = 22, cex = 1, bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_epi), labels=wave_epi)
-mtext(side = 2, line = 3, "Temporal over naive epidemic duration", cex = 1.2)
+axis(1, at = 1:length(wave_epi), labels=wave_epi,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Frequency-based over naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "epidemic duration", cex = 1.5)
 plot(x = seq(1, length(wave_epi)), 
      y = output_ed_covid$epidemic_duration,
-     ylim= c(0,1.5), type = "n", xlab = "Wave", ylab = "", main = "COVID-19", xaxt = "n")
+     ylim= c(0,1.5), type = "n", xlab = "Wave", ylab = "", main = "COVID-19-like", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_epi)),
        y0 = output_ed_covid$lower,
        x1 = seq(1, length(wave_epi)),
        y1 = output_ed_covid$upper,
-       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 2,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5, xaxt = "n", yaxt = "n")
 points(x = seq(1, length(wave_epi)), 
        y = output_ed_covid$epidemic_duration,
        ylim= c(0,1.5),
        lty = 2, pch = 22, cex = 1, bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_epi), labels=wave_epi)
-mtext(side = 2, line = 3, "Temporal over naive epidemic duration", cex = 1.2)
+axis(1, at = 1:length(wave_epi), labels=wave_epi,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Frequency-based over naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "epidemic duration", cex = 1.5)
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
 dev.off()
+
 
 #------- time to peak for physical contacts (POLYMOD)
 nboot = 3000
@@ -1838,39 +1897,45 @@ output_ttp_covid <- calculate_ttp_comparison_with_ci(ttp_baseline_covid,
                                                      ttp_temporal_covid)
 
 png(filename = "results/POLYMOD/ratio_onlyphysical_timetopeak_withci.png", width = 650*1.3, height = 450)
-par(oma = c(3,1,0.75,1), mfrow = c(1, 2), mar = c(3, 4, 3, 1))
+par(oma = c(2,1,0.75,1), mfrow = c(1, 2), mar = c(4.5, 4, 4, 1.5))
 plot(x = seq(1, length(country_list)), 
      y = output_ttp_flu$timetopeak,
-     ylim= c(0.5,1.25), type = "n", xlab = "Country", ylab = "", main = "Influenza-like", xaxt = "n")
+     ylim= c(0.5,1.25), type = "n", xlab = "Country", ylab = "", main = "Influenza-like", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(country_list)),
        y0 = output_ttp_flu$lower,
        x1 = seq(1, length(country_list)),
        y1 = output_ttp_flu$upper,
-       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 2,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5, xaxt = "n", yaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = output_ttp_flu$timetopeak,
        ylim= c(0.5,1.25),
        lty = 2, pch = 22, cex = 1, bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(country_list), labels=country_list)
-mtext(side = 2, line = 3, "Temporal over naive", cex = 1.2)
-mtext(side = 2, line = 2, "time to peak of the epidemic", cex = 1.2)
+axis(1, at = 1:length(country_list), labels=country_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Frequency-based over naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "time to peak of the epidemic", cex = 1.5)
 plot(x = seq(1, length(country_list)), 
      y = output_ttp_covid$timetopeak,
-     ylim= c(0.5,1.25), type = "n", xlab = "Country", ylab = "", main = "COVID-19-like", xaxt = "n")
+     ylim= c(0.5,1.25), type = "n", xlab = "Country", ylab = "", main = "COVID-19-like", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(country_list)),
        y0 = output_ttp_covid$lower,
        x1 = seq(1, length(country_list)),
        y1 = output_ttp_covid$upper,
-       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 2,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5, xaxt = "n", yaxt = "n")
 points(x = seq(1, length(country_list)), 
        y = output_ttp_covid$timetopeak,
        ylim= c(0.5,1.25),
        lty = 2, pch = 22, cex = 1, bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(country_list), labels=country_list)
-mtext(side = 2, line = 3, "Temporal over naive", cex = 1.2)
-mtext(side = 2, line = 2, "time to peak of the epidemic", cex = 1.2)
+axis(1, at = 1:length(country_list), labels=country_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Frequency-based over naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "time to peak of the epidemic", cex = 1.5)
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
 dev.off()
@@ -1878,7 +1943,7 @@ dev.off()
 #------- time to peak for physical contacts (CoMix)
 nboot = 3000
 
-if(!file.exists("rds/CoMix/timetopeak/timetopeak_physical_baseline_01874_0019.rds")){
+if(!file.exists("rds/CoMix/timetopeak/timetopeak_physical_temporal_01847_0019.rds")){
   for(i in 1:length(wave_epi)){
     timetopeak_baseline <- list()
     timetopeak_temporal <- list()
@@ -2002,39 +2067,45 @@ output_ttp_covid <- calculate_ttp_comparison_with_ci(ttp_baseline_covid,
                                                      ttp_temporal_covid)
 
 png(filename = "results/CoMix/ratio_onlyphysical_timetopeak_withci.png", width = 650*1.3, height = 450)
-par(oma = c(3,1,0.75,1), mfrow = c(1, 2), mar = c(3, 4, 3, 1))
+par(oma = c(2,1,0.75,1), mfrow = c(1, 2), mar = c(4.5, 4, 4, 1.5))
 plot(x = seq(1, length(wave_epi)), 
      y = output_ttp_flu$timetopeak,
-     ylim= c(0.5,1.75), type = "n", xlab = "Wave", ylab = "", main = "Flu", xaxt = "n")
+     ylim= c(0.5,1.8), type = "n", xlab = "Wave", ylab = "", main = "Influenza-like", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_epi)),
        y0 = output_ttp_flu$lower,
        x1 = seq(1, length(wave_epi)),
        y1 = output_ttp_flu$upper,
-       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 2,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5, xaxt = "n", yaxt = "n")
 points(x = seq(1, length(wave_epi)), 
        y = output_ttp_flu$timetopeak,
-       ylim= c(0.5,1.75),
+       ylim= c(0.5,1.8),
        lty = 2, pch = 22, cex = 1, bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_epi), labels=wave_epi)
-mtext(side = 2, line = 3, "Temporal over naive", cex = 1.2)
-mtext(side = 2, line = 2, "time to peak of the epidemic", cex = 1.2)
+axis(1, at = 1:length(wave_epi), labels=wave_epi,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Frequency-based over naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "time to peak of the epidemic", cex = 1.5)
 plot(x = seq(1, length(wave_epi)), 
      y = output_ttp_covid$timetopeak,
-     ylim= c(0.5,1.75), type = "n", xlab = "Wave", ylab = "", main = "COVID-19", xaxt = "n")
+     ylim= c(0.5,1.8), type = "n", xlab = "Wave", ylab = "", main = "COVID-19-like", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(wave_epi)),
        y0 = output_ttp_covid$lower,
        x1 = seq(1, length(wave_epi)),
        y1 = output_ttp_covid$upper,
-       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkolivegreen4", length = 0.05, lwd = 2,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5, xaxt = "n", yaxt = "n")
 points(x = seq(1, length(wave_epi)), 
        y = output_ttp_covid$timetopeak,
-       ylim= c(0.5,1.75),
+       ylim= c(0.5,1.8),
        lty = 2, pch = 22, cex = 1, bg = "darkolivegreen4",
        cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4, xaxt = "n")
-axis(1, at = 1:length(wave_epi), labels= wave_epi)
-mtext(side = 2, line = 3, "Temporal over naive", cex = 1.2)
-mtext(side = 2, line = 2, "time to peak of the epidemic", cex = 1.2)
+axis(1, at = 1:length(wave_epi), labels=wave_epi,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.5, "Frequency-based over naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "time to peak of the epidemic", cex = 1.5)
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
 dev.off()
@@ -2111,7 +2182,6 @@ output_extinctionrate_covid <- calculate_extinctionrate_comix(ttp_baseline_covid
                                                               ttp_temporal_covid)
 
 # Contacts at home/ in home ratio and crude numbers (CoMix)
-
 count = 1
 cnt_location <- c("inshome", "outhome")
 
@@ -2154,155 +2224,159 @@ if(!file.exists("rds/CoMix/data_temp_CoMix_withci.rds")){
 data_ratio_to_plot <- do.call("rbind", storage_list_comix)
 
 png(filename = "results/CoMix/ratio_allcontacts_home_results_withci.png", width = 800*1.2, height = 800)
-par(oma = c(3,1,0.75,1), mfrow = c(2, 2), mar = c(3, 4, 3, 1))
+par(oma = c(3,1,0.75,1), mfrow = c(2, 2), mar = c(3, 4.5, 3, 1))
 plot(x = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$wave, 
      y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$mean,
-     ylim= c(0,1), type = "n", xlab = "Wave", ylab = "", main = "Children")
+     ylim= c(0,1), type = "n", xlab = "Wave", ylab = "", main = "Children",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$wave,
        y0 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$lower,
        x1 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$wave,
        y1 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$upper,
-       angle = 90, code = 3, col = "blue", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "blue", length = 0.05, lwd = 2)
 points(x = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$wave, 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$mean,
        ylim= c(0,1), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Children", bg = "blue",
+       lty = 2, pch = 22, cex = 1.2, main = "Children", bg = "blue",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = storage_data_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$wave,
        y0 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Children",]$lower,
        x1 = storage_data_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$wave,
        y1 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Children",]$upper,
-       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 2)
 points(x = storage_data_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$wave, 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Children",]$mean,
        ylim= c(0,1), type = "b",
-       lty = 2, pch = 23, cex = 1, main = "Children", bg = "darkgreen",
+       lty = 2, pch = 23, cex = 1.2, main = "Children", bg = "darkgreen",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Children",]$wave,
        y0 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Children",]$lower,
        x1 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Children",]$wave,
        y1 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Children",]$upper,
-       angle = 90, code = 3, col = "red", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "red", length = 0.05, lwd = 2)
 points(x = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Children",]$wave, 
        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Children",]$mean,
        ylim= c(0,1), type = "b",
-       lty = 2, pch = 21, cex = 1, main = "Children", bg = "red",
+       lty = 2, pch = 21, cex = 1.2, main = "Children", bg = "red",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+mtext(side = 2, line = 3.75, "Ratio of frequency-based to naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "total number of distinct contacts", cex = 1.5)
 plot(x = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$wave, 
      y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$mean,
-     ylim= c(0,1), type = "n", xlab = "Wave", ylab = "", main = "Teens")
+     ylim= c(0,1), type = "n", xlab = "Wave", ylab = "", main = "Teens",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$wave,
        y0 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$lower,
        x1 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$wave,
        y1 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$upper,
-       angle = 90, code = 3, col = "blue", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "blue", length = 0.05, lwd = 2)
 points(x = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$wave, 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$mean,
        ylim= c(0,1), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Teens", bg = "blue",
+       lty = 2, pch = 22, cex = 1.2, main = "Teens", bg = "blue",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = storage_data_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$wave,
        y0 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Teens",]$lower,
        x1 = storage_data_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$wave,
        y1 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Teens",]$upper,
-       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 2)
 points(x = storage_data_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$wave, 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Teens",]$mean,
        ylim= c(0,1), type = "b",
-       lty = 2, pch = 23, cex = 1, main = "Teens", bg = "darkgreen",
+       lty = 2, pch = 23, cex = 1.2, main = "Teens", bg = "darkgreen",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Teens",]$wave,
        y0 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Teens",]$lower,
        x1 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Teens",]$wave,
        y1 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Teens",]$upper,
-       angle = 90, code = 3, col = "red", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "red", length = 0.05, lwd = 2)
 points(x = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Teens",]$wave, 
        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Teens",]$mean,
        ylim= c(0,1), type = "b",
-       lty = 2, pch = 21, cex = 1, main = "Teens", bg = "red",
+       lty = 2, pch = 21, cex = 1.2, main = "Teens", bg = "red",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+mtext(side = 2, line = 3.75, "Ratio of frequency-based to naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "total number of distinct contacts", cex = 1.5)
 plot(x = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$wave, 
      y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$mean,
-     ylim= c(0,1), type = "n", xlab = "Wave", ylab = "", main = "Adult")
+     ylim= c(0,1), type = "n", xlab = "Wave", ylab = "", main = "Adult",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$wave,
        y0 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$lower,
        x1 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$wave,
        y1 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$upper,
-       angle = 90, code = 3, col = "blue", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "blue", length = 0.05, lwd = 2)
 points(x = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$wave, 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$mean,
        ylim= c(0,1), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Adult", bg = "blue",
+       lty = 2, pch = 22, cex = 1.2, main = "Adult", bg = "blue",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = storage_data_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$wave,
        y0 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Adult",]$lower,
        x1 = storage_data_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$wave,
        y1 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Adult",]$upper,
-       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 2)
 points(x = storage_data_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$wave, 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Adult",]$mean,
        ylim= c(0,1), type = "b",
-       lty = 2, pch = 23, cex = 1, main = "Adult", bg = "darkgreen",
+       lty = 2, pch = 23, cex = 1.2, main = "Adult", bg = "darkgreen",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Adult",]$wave,
        y0 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Adult",]$lower,
        x1 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Adult",]$wave,
        y1 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Adult",]$upper,
-       angle = 90, code = 3, col = "red", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "red", length = 0.05, lwd = 2)
 points(x = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Adult",]$wave, 
        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Adult",]$mean,
        ylim= c(0,1), type = "b",
-       lty = 2, pch = 21, cex = 1, main = "Adult", bg = "red",
+       lty = 2, pch = 21, cex = 1.2, main = "Adult", bg = "red",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+mtext(side = 2, line = 3.75, "Ratio of frequency-based to naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "total number of distinct contacts", cex = 1.5)
 mtext(side = 1, line = 2.5, "Wave", cex = 1.2)
 plot(x = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$wave, 
      y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$mean,
-     ylim= c(0,1), type = "n", xlab = "Wave", ylab = "", main = "Elderly")
+     ylim= c(0,1), type = "n", xlab = "Wave", ylab = "", main = "Elderly",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$wave,
        y0 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$lower,
        x1 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$wave,
        y1 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$upper,
-       angle = 90, code = 3, col = "blue", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "blue", length = 0.05, lwd = 2)
 points(x = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$wave, 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$mean,
        ylim= c(0,1), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Elderly", bg = "blue",
+       lty = 2, pch = 22, cex = 1.2, main = "Elderly", bg = "blue",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = storage_data_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$wave,
        y0 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Elderly",]$lower,
        x1 = storage_data_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$wave,
        y1 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Elderly",]$upper,
-       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 2)
 points(x = storage_data_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$wave, 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Elderly",]$mean,
        ylim= c(0,1), type = "b",
-       lty = 2, pch = 23, cex = 1, main = "Elderly", bg = "darkgreen",
+       lty = 2, pch = 23, cex = 1.2, main = "Elderly", bg = "darkgreen",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Elderly",]$wave,
        y0 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Elderly",]$lower,
        x1 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Elderly",]$wave,
        y1 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Elderly",]$upper,
-       angle = 90, code = 3, col = "red", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "red", length = 0.05, lwd = 2)
 points(x = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Elderly",]$wave, 
        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Elderly",]$mean,
        ylim= c(0,1), type = "b",
        lty = 2, pch = 21, cex = 1, main = "Elderly", bg = "red",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+mtext(side = 2, line = 3.75, "Ratio of frequency-based to naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "total number of distinct contacts", cex = 1.5)
 mtext(side = 1, line = 2.5, "Wave", cex = 1.2)
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
 legend(x = "bottom",
        legend = c("All contacts", "Contacts outside home", "Contacts at home"), 
        pt.bg= c("red", "blue", "darkgreen"), 
-       pch = c(21, 22, 23), cex=1.35, horiz = TRUE, bty = "n")
+       pch = c(21, 22, 23), cex=1.5, horiz = TRUE, bty = "n")
 dev.off()
 
 if(!file.exists("rds/CoMix/data_ratio_comix_home.rds")){
@@ -2333,171 +2407,125 @@ data_ratio_to_plot <- do.call("rbind", storage_list_comix)
 data_ratio_to_plot <- data_ratio_to_plot[data_ratio_to_plot$cnt_type == "all_contacts",]
 
 png(filename = "results/CoMix/crude_allcontacts_results_home.png", width = 600*1.5, height = 600*1.2)
-par(mfrow = c(2,2))
+par(oma = c(3,1,0.85,1), mfrow = c(2, 2), mar = c(4.75, 4, 3, 1))
 plot(x = seq(1, length(wave_list)), 
      y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Children",]$sum_naive,
-     ylim= c(0,50), type = "n", xlab = "Wave", ylab = "", main = "Children", xaxt = "n")
-# points(x = seq(1, length(wave_list)), 
-#        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Children",]$sum_naive,
-#        ylim= c(0,50), type = "b",
-#        lty = 2, pch = 21, cex = 1, main = "Children", bg = "#c1121f",
-#        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-# points(x = seq(1, length(wave_list)), 
-#        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Children",]$sum_temp,
-#        ylim= c(0,50), type = "b",
-#        lty = 2, pch = 21, cex = 1, main = "Children", bg = "#669bbc",
-#        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
+     ylim= c(0,50), type = "n", xlab = "Wave", ylab = "", main = "Children", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(wave_list)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Children",]$sum_naive,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Children", bg = "#c1121f",
+       lty = 2, pch = 24, cex = 1.2, main = "Children", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Children",]$sum_temp,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Children", bg = "#669bbc",
+       lty = 2, pch = 24, cex = 1.2, main = "Children", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$sum_naive,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Children", bg = "#c1121f",
+       lty = 2, pch = 22, cex = 1.2, main = "Children", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$sum_temp,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Children", bg = "#669bbc",
+       lty = 2, pch = 22, cex = 1.2, main = "Children", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-# "All contacts (Average)", "All contacts (Temporal)",
-legend("topright", legend = c("Inside home contacts (Average)", "Inside home contacts (Temporal)",
-                              "Outside home contacts (Average)", "Outside home contacts (Temporal)"),
-       pch = c(24, 24, 22, 22), #c(21, 21, 24, 24, 22, 22) 
-       pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(wave_list), labels=wave_list)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_list), labels=wave_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 2.5, "Total number of weekly distinct contacts", cex = 1.2)
 plot(x = seq(1, length(wave_list)), 
      y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Teens",]$sum_naive,
-     ylim= c(0,50), type = "n", xlab = "Wave", ylab = "", main = "Teens", xaxt = "n")
-# points(x = seq(1, length(wave_list)), 
-#        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Teens",]$sum_naive,
-#        ylim= c(0,50), type = "b",
-#        lty = 2, pch = 21, cex = 1, main = "Teens", bg = "#c1121f",
-#        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-# points(x = seq(1, length(wave_list)), 
-#        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Teens",]$sum_temp,
-#        ylim= c(0,50), type = "b",
-#        lty = 2, pch = 21, cex = 1, main = "Teens", bg = "#669bbc",
-#        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
+     ylim= c(0,50), type = "n", xlab = "Wave", ylab = "", main = "Teens", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(wave_list)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Teens",]$sum_naive,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Teens", bg = "#c1121f",
+       lty = 2, pch = 24, cex = 1.2, main = "Teens", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Teens",]$sum_temp,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Teens", bg = "#669bbc",
+       lty = 2, pch = 24, cex = 1.2, main = "Teens", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$sum_naive,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Teens", bg = "#c1121f",
+       lty = 2, pch = 22, cex = 1.2, main = "Teens", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$sum_temp,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Teens", bg = "#669bbc",
+       lty = 2, pch = 22, cex = 1.2, main = "Teens", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-# "All contacts (Average)", "All contacts (Temporal)",
-legend("topright", legend = c("Inside home contacts (Average)", "Inside home contacts (Temporal)",
-                              "Outside home contacts (Average)", "Outside home contacts (Temporal)"),
-       pch = c(24, 24, 22, 22), #c(21, 21, 24, 24, 22, 22) 
-       pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(wave_list), labels=wave_list)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_list), labels=wave_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 2.5, "Total number of weekly distinct contacts", cex = 1.2)
 plot(x = seq(1, length(wave_list)), 
      y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Adult",]$sum_naive,
-     ylim= c(0,50), type = "n", xlab = "Wave", ylab = "", main = "Adult", xaxt = "n")
-# points(x = seq(1, length(wave_list)), 
-#        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Adult",]$sum_naive,
-#        ylim= c(0,50), type = "b",
-#        lty = 2, pch = 21, cex = 1, main = "Adult", bg = "#c1121f",
-#        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-# points(x = seq(1, length(wave_list)), 
-#        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Adult",]$sum_temp,
-#        ylim= c(0,50), type = "b",
-#        lty = 2, pch = 21, cex = 1, main = "Adult", bg = "#669bbc",
-#        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
+     ylim= c(0,50), type = "n", xlab = "Wave", ylab = "", main = "Adult", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(wave_list)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Adult",]$sum_naive,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Adult", bg = "#c1121f",
+       lty = 2, pch = 24, cex = 1.2, main = "Adult", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Adult",]$sum_temp,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Adult", bg = "#669bbc",
+       lty = 2, pch = 24, cex = 1.2, main = "Adult", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$sum_naive,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Adult", bg = "#c1121f",
+       lty = 2, pch = 22, cex = 1.2, main = "Adult", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$sum_temp,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Adult", bg = "#669bbc",
+       lty = 2, pch = 22, cex = 1.2, main = "Adult", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-# "All contacts (Average)", "All contacts (Temporal)",
-legend("topright", legend = c("Inside home contacts (Average)", "Inside home contacts (Temporal)",
-                              "Outside home contacts (Average)", "Outside home contacts (Temporal)"),
-       pch = c(24, 24, 22, 22), #c(21, 21, 24, 24, 22, 22) 
-       pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(wave_list), labels=wave_list)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_list), labels=wave_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 2.5, "Total number of weekly distinct contacts", cex = 1.2)
 plot(x = seq(1, length(wave_list)), 
      y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Elderly",]$sum_naive,
-     ylim= c(0,50), type = "n", xlab = "Wave", ylab = "", main = "Elderly", xaxt = "n")
-# points(x = seq(1, length(wave_list)), 
-#        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Elderly",]$sum_naive,
-#        ylim= c(0,50), type = "b",
-#        lty = 2, pch = 21, cex = 1, main = "Elderly", bg = "#c1121f",
-#        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-# points(x = seq(1, length(wave_list)), 
-#        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Elderly",]$sum_temp,
-#        ylim= c(0,50), type = "b",
-#        lty = 2, pch = 21, cex = 1, main = "Elderly", bg = "#669bbc",
-#        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
+     ylim= c(0,50), type = "n", xlab = "Wave", ylab = "", main = "Elderly", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(wave_list)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Elderly",]$sum_naive,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Elderly", bg = "#c1121f",
+       lty = 2, pch = 24, cex = 1.2, main = "Elderly", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Elderly",]$sum_temp,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Elderly", bg = "#669bbc",
+       lty = 2, pch = 24, cex = 1.2, main = "Elderly", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$sum_naive,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Elderly", bg = "#c1121f",
+       lty = 2, pch = 22, cex = 1.2, main = "Elderly", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(wave_list)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$sum_temp,
        ylim= c(0,50), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Elderly", bg = "#669bbc",
+       lty = 2, pch = 22, cex = 1.2, main = "Elderly", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-# "All contacts (Average)", "All contacts (Temporal)",
-legend("topright", legend = c("Inside home contacts (Average)", "Inside home contacts (Temporal)",
-                              "Outside home contacts (Average)", "Outside home contacts (Temporal)"),
-       pch = c(24, 24, 22, 22), #c(21, 21, 24, 24, 22, 22) 
-       pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(wave_list), labels=wave_list)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(wave_list), labels=wave_list,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 2.5, "Total number of weekly distinct contacts", cex = 1.2)
+par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0.5, 0), mar = c(0, 0, 0.5, 0), new = TRUE)
+plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
+legend(x = "bottom",
+       legend = c("Inside home contacts (Naive)", "Inside home contacts (Frequency-based)",
+                  "Outside home contacts (Naive)", "Outside home contacts (Frequency-based)"),
+       pch = c(21, 21, 24, 24), pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc"),
+       cex=1.35, bty = "n", ncol = 2)
 dev.off()
 
 # Contacts at home/ in home ratio and crude numbers (POLYMOD)
-
 count = 1
 cnt_location <- c("inshome", "outhome")
 
@@ -2548,119 +2576,126 @@ data_ratio_to_plot <- do.call("rbind", storage_list)
 country <- c("BE", "DE", "FI", "GB", "IT", "LU", "NL", "PL")
 
 png(filename = "results/POLYMOD/ratio_allcontacts_home_results_withci.png", width = 800*1.2, height = 800)
-par(oma = c(3,1,0.75,1), mfrow = c(2, 2), mar = c(3, 4, 3, 1))
+par(oma = c(3,1,0.75,1), mfrow = c(2, 2), mar = c(3, 4.5, 3, 1))
 plot(x = seq(1, length(country)), 
      y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$mean,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Children", xaxt = "n")
+     ylim= c(0,1), type = "n", xlab = "", ylab = "", main = "Children", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(country)),
        y0 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$lower,
        x1 = seq(1, length(country)),
        y1 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$upper,
-       angle = 90, code = 3, col = "blue", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "blue", length = 0.05, lwd = 2)
 points(x = seq(1, length(country)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$mean,
        ylim= c(0,1),
-       lty = 2, pch = 22, cex = 1, main = "Children", bg = "blue",
+       lty = 2, pch = 22, cex = 1.2, main = "Children", bg = "blue",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = seq(1, length(country)),
        y0 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Children",]$lower,
        x1 = seq(1, length(country)),
        y1 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Children",]$upper,
-       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 2)
 points(x = seq(1, length(country)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Children",]$mean,
        ylim= c(0,1),
-       lty = 2, pch = 23, cex = 1, main = "Children", bg = "darkgreen",
+       lty = 2, pch = 23, cex = 1.2, main = "Children", bg = "darkgreen",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = seq(1, length(country)),
        y0 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Children",]$lower,
        x1 = seq(1, length(country)),
        y1 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Children",]$upper,
-       angle = 90, code = 3, col = "red", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "red", length = 0.05, lwd = 2)
 points(x = seq(1, length(country)), 
        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Children",]$mean,
        ylim= c(0,1),
-       lty = 2, pch = 21, cex = 1, main = "Children", bg = "red",
+       lty = 2, pch = 21, cex = 1.2, main = "Children", bg = "red",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-axis(1, at = 1:length(country), labels=country)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+axis(1, at = 1:length(country), labels=country,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.75, "Ratio of frequency-based to naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "total number of distinct contacts", cex = 1.5)
 plot(x = seq(1, length(country)), 
      y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$mean,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Teens", xaxt = "n")
+     ylim= c(0,1), type = "n", xlab = "", ylab = "", main = "Teens", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(country)),
        y0 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$lower,
        x1 = seq(1, length(country)),
        y1 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$upper,
-       angle = 90, code = 3, col = "blue", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "blue", length = 0.05, lwd = 2)
 points(x = seq(1, length(country)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$mean,
        ylim= c(0,1),
-       lty = 2, pch = 22, cex = 1, main = "Teens", bg = "blue",
+       lty = 2, pch = 22, cex = 1.2, main = "Teens", bg = "blue",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = seq(1, length(country)),
        y0 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Teens",]$lower,
        x1 = seq(1, length(country)),
        y1 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Teens",]$upper,
-       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 2)
 points(x = seq(1, length(country)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Teens",]$mean,
        ylim= c(0,1),
-       lty = 2, pch = 23, cex = 1, main = "Teens", bg = "darkgreen",
+       lty = 2, pch = 23, cex = 1.2, main = "Teens", bg = "darkgreen",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = seq(1, length(country)),
        y0 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Teens",]$lower,
        x1 = seq(1, length(country)),
        y1 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Teens",]$upper,
-       angle = 90, code = 3, col = "red", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "red", length = 0.05, lwd = 2)
 points(x = seq(1, length(country)), 
        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Teens",]$mean,
        ylim= c(0,1),
-       lty = 2, pch = 21, cex = 1, main = "Teens", bg = "red",
+       lty = 2, pch = 21, cex = 1.2, main = "Teens", bg = "red",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-axis(1, at = 1:length(country), labels=country)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+axis(1, at = 1:length(country), labels=country,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.75, "Ratio of frequency-based to naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "total number of distinct contacts", cex = 1.5)
 plot(x = seq(1, length(country)), 
      y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$mean,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Adult", xaxt = "n")
+     ylim= c(0,1), type = "n", xlab = "", ylab = "", main = "Adult", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(country)),
        y0 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$lower,
        x1 = seq(1, length(country)),
        y1 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$upper,
-       angle = 90, code = 3, col = "blue", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "blue", length = 0.05, lwd = 2)
 points(x = seq(1, length(country)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$mean,
        ylim= c(0,1),
-       lty = 2, pch = 22, cex = 1, main = "Adult", bg = "blue",
+       lty = 2, pch = 22, cex = 1.2, main = "Adult", bg = "blue",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = seq(1, length(country)),
        y0 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Adult",]$lower,
        x1 = seq(1, length(country)),
        y1 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Adult",]$upper,
-       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 2)
 points(x = seq(1, length(country)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Adult",]$mean,
        ylim= c(0,1),
-       lty = 2, pch = 23, cex = 1, main = "Adult", bg = "darkgreen",
+       lty = 2, pch = 23, cex = 1.2, main = "Adult", bg = "darkgreen",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = seq(1, length(country)),
        y0 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Adult",]$lower,
        x1 = seq(1, length(country)),
        y1 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Adult",]$upper,
-       angle = 90, code = 3, col = "red", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "red", length = 0.05, lwd = 2)
 points(x = seq(1, length(country)), 
        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Adult",]$mean,
        ylim= c(0,1),
-       lty = 2, pch = 21, cex = 1, main = "Adult", bg = "red",
+       lty = 2, pch = 21, cex = 1.2, main = "Adult", bg = "red",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-axis(1, at = 1:length(country), labels=country)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+axis(1, at = 1:length(country), labels=country,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.75, "Ratio of frequency-based to naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "total number of distinct contacts", cex = 1.5)
 mtext(side = 1, line = 2.5, "Country", cex = 1.2)
 plot(x = seq(1, length(country)), 
      y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$mean,
-     ylim= c(0,1), type = "n", xlab = "Country", ylab = "", main = "Elderly", xaxt = "n")
+     ylim= c(0,1), type = "n", xlab = "", ylab = "", main = "Elderly", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 arrows(x0 = seq(1, length(country)),
        y0 = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$lower,
        x1 = seq(1, length(country)),
@@ -2669,31 +2704,32 @@ arrows(x0 = seq(1, length(country)),
 points(x = seq(1, length(country)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$mean,
        ylim= c(0,1),
-       lty = 2, pch = 22, cex = 1, main = "Elderly", bg = "blue",
+       lty = 2, pch = 22, cex = 1.2, main = "Elderly", bg = "blue",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = seq(1, length(country)),
        y0 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Elderly",]$lower,
        x1 = seq(1, length(country)),
        y1 = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Elderly",]$upper,
-       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "darkgreen", length = 0.05, lwd = 2)
 points(x = seq(1, length(country)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Elderly",]$mean,
        ylim= c(0,1),
-       lty = 2, pch = 23, cex = 1, main = "Elderly", bg = "darkgreen",
+       lty = 2, pch = 23, cex = 1.2, main = "Elderly", bg = "darkgreen",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 arrows(x0 = seq(1, length(country)),
        y0 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Elderly",]$lower,
        x1 = seq(1, length(country)),
        y1 = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Elderly",]$upper,
-       angle = 90, code = 3, col = "red", length = 0.05, lwd = 1.5)
+       angle = 90, code = 3, col = "red", length = 0.05, lwd = 2)
 points(x = seq(1, length(country)), 
        y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Elderly",]$mean,
        ylim= c(0,1),
-       lty = 2, pch = 21, cex = 1, main = "Elderly", bg = "red",
+       lty = 2, pch = 21, cex = 1.2, main = "Elderly", bg = "red",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-axis(1, at = 1:length(country), labels=country)
-mtext(side = 2, line = 3, "Ratio of temporal to naive", cex = 1.2)
-mtext(side = 2, line = 2, "total number of distinct contacts", cex = 1.2)
+axis(1, at = 1:length(country), labels=country,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3.75, "Ratio of frequency-based to naive", cex = 1.5)
+mtext(side = 2, line = 2.5, "total number of distinct contacts", cex = 1.5)
 mtext(side = 1, line = 2.5, "Country", cex = 1.2)
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
@@ -2736,122 +2772,121 @@ data_ratio_to_plot <- do.call("rbind", storage_list_polymod)
 data_ratio_to_plot <- data_ratio_to_plot[data_ratio_to_plot$cnt_type == "all_contacts",]
 
 png(filename = "results/POLYMOD/crude_allcontacts_results_home.png", width = 600*1.5, height = 600*1.2)
-par(mfrow = c(2,2))
+par(oma = c(3,1,0.85,1), mfrow = c(2, 2), mar = c(4.75, 4, 3, 1))
 plot(x = seq(1, length(country)), 
      y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Children",]$sum_naive,
-     ylim= c(0,200), type = "n", xlab = "Wave", ylab = "", main = "Children", xaxt = "n")
+     ylim= c(0,200), type = "n", xlab = "Country", ylab = "", main = "Children", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(country)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Children",]$sum_naive,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Children", bg = "#c1121f",
+       ylim= c(0,200), 
+       lty = 2, pch = 24, cex = 1.2, main = "Children", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Children",]$sum_temp,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Children", bg = "#669bbc",
+       ylim= c(0,200), 
+       lty = 2, pch = 24, cex = 1.2, main = "Children", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$sum_naive,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Children", bg = "#c1121f",
+       ylim= c(0,200), 
+       lty = 2, pch = 22, cex = 1.2, main = "Children", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Children",]$sum_temp,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Children", bg = "#669bbc",
+       ylim= c(0,200), 
+       lty = 2, pch = 22, cex = 1.2, main = "Children", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-legend("topright", legend = c("Inside home contacts (Average)", "Inside home contacts (Temporal)",
-                              "Outside home contacts (Average)", "Outside home contacts (Temporal)"),
-       pch = c(24, 24, 22, 22),
-       pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(country), labels=country)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(country), labels=country,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3, "Total number of weekly distinct contacts", cex = 1.2)
 plot(x = seq(1, length(country)), 
      y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Teens",]$sum_naive,
-     ylim= c(0,200), type = "n", xlab = "Wave", ylab = "", main = "Teens", xaxt = "n")
+     ylim= c(0,200), type = "n", xlab = "Country", ylab = "", main = "Teens", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(country)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Teens",]$sum_naive,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Teens", bg = "#c1121f",
+       ylim= c(0,200), 
+       lty = 2, pch = 24, cex = 1.2, main = "Teens", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Teens",]$sum_temp,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Teens", bg = "#669bbc",
+       ylim= c(0,200), 
+       lty = 2, pch = 24, cex = 1.2, main = "Teens", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$sum_naive,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Teens", bg = "#c1121f",
+       ylim= c(0,200), 
+       lty = 2, pch = 22, cex = 1.2, main = "Teens", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Teens",]$sum_temp,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Teens", bg = "#669bbc",
+       ylim= c(0,200), 
+       lty = 2, pch = 22, cex = 1.2, main = "Teens", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-legend("topright", legend = c("Inside home contacts (Average)", "Inside home contacts (Temporal)",
-                              "Outside home contacts (Average)", "Outside home contacts (Temporal)"),
-       pch = c(24, 24, 22, 22),
-       pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(country), labels=country)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(country), labels=country,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3, "Total number of weekly distinct contacts", cex = 1.2)
 plot(x = seq(1, length(country)), 
      y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Adult",]$sum_naive,
-     ylim= c(0,200), type = "n", xlab = "Wave", ylab = "", main = "Adult", xaxt = "n")
+     ylim= c(0,200), type = "n", xlab = "Country", ylab = "", main = "Adult", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(country)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Adult",]$sum_naive,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Adult", bg = "#c1121f",
+       ylim= c(0,200), 
+       lty = 2, pch = 24, cex = 1.2, main = "Adult", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Adult",]$sum_temp,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Adult", bg = "#669bbc",
+       ylim= c(0,200), 
+       lty = 2, pch = 24, cex = 1.2, main = "Adult", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$sum_naive,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Adult", bg = "#c1121f",
+       ylim= c(0,200), 
+       lty = 2, pch = 22, cex = 1.2, main = "Adult", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Adult",]$sum_temp,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Adult", bg = "#669bbc",
+       ylim= c(0,200), 
+       lty = 2, pch = 22, cex = 1.2, main = "Adult", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-legend("topright", legend = c("Inside home contacts (Average)", "Inside home contacts (Temporal)",
-                              "Outside home contacts (Average)", "Outside home contacts (Temporal)"),
-       pch = c(24, 24, 22, 22),
-       pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(country), labels=country)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(country), labels=country,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3, "Total number of weekly distinct contacts", cex = 1.2)
 plot(x = seq(1, length(country)), 
      y = data_ratio_to_plot[data_ratio_to_plot$part_age_cat == "Elderly",]$sum_naive,
-     ylim= c(0,200), type = "n", xlab = "Wave", ylab = "", main = "Elderly", xaxt = "n")
+     ylim= c(0,200), type = "n", xlab = "Country", ylab = "", main = "Elderly", xaxt = "n",
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 points(x = seq(1, length(country)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Elderly",]$sum_naive,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Elderly", bg = "#c1121f",
+       ylim= c(0,200), 
+       lty = 2, pch = 24, cex = 1.2, main = "Elderly", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country)), 
        y = storage_data_at_home_withci[storage_data_at_home_withci$part_age_cat == "Elderly",]$sum_temp,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 24, cex = 1, main = "Elderly", bg = "#669bbc",
+       ylim= c(0,200), 
+       lty = 2, pch = 24, cex = 1.2, main = "Elderly", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$sum_naive,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Elderly", bg = "#c1121f",
+       ylim= c(0,200), 
+       lty = 2, pch = 22, cex = 1.2, main = "Elderly", bg = "#c1121f",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
 points(x = seq(1, length(country)), 
        y = storage_data_not_at_home_withci[storage_data_not_at_home_withci$part_age_cat == "Elderly",]$sum_temp,
-       ylim= c(0,200), type = "b",
-       lty = 2, pch = 22, cex = 1, main = "Elderly", bg = "#669bbc",
+       ylim= c(0,200), 
+       lty = 2, pch = 22, cex = 1.2, main = "Elderly", bg = "#669bbc",
        cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, xaxt = "n")
-legend("topright", legend = c("Inside home contacts (Average)", "Inside home contacts (Temporal)",
-                              "Outside home contacts (Average)", "Outside home contacts (Temporal)"),
-       pch = c(24, 24, 22, 22),
-       pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc", "#c1121f", "#669bbc"))
-axis(1, at = 1:length(country), labels=country)
-mtext(side = 2, line = 2, "Total number of weekly distinct contacts", cex = 1.2)
+axis(1, at = 1:length(country), labels=country,
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+mtext(side = 2, line = 3, "Total number of weekly distinct contacts", cex = 1.2)
+par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0.5, 0), mar = c(0, 0, 0.5, 0), new = TRUE)
+plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
+legend(x = "bottom",
+       legend = c("Inside home contacts (Naive)", "Inside home contacts (Frequency-based)",
+                  "Outside home contacts (Naive)", "Outside home contacts (Frequency-based)"),
+       pch = c(21, 21, 24, 24), pt.bg = c("#c1121f", "#669bbc", "#c1121f", "#669bbc"),
+       cex=1.35, bty = "n", ncol = 2)
 dev.off()
 

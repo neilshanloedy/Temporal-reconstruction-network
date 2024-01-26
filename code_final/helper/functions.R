@@ -1789,7 +1789,7 @@ calculate_ratio_temporal_withci <- function(dataset = temp){
   return(output)
 }
 
-fplot_boxplot_daily_nondaily_comix <- function(dataset = data_to_plot){
+fplot_boxplot_daily_nondaily_comix <- function(dataset = data_to_plot, breaks_input){
   
   dataset <- dataset %>% 
     mutate(freq_agg = ifelse(frequency_multi %in% "daily", "daily", "non_daily"))
@@ -1800,9 +1800,17 @@ fplot_boxplot_daily_nondaily_comix <- function(dataset = data_to_plot){
     group_by(part_id, part_age_cat, wave, freq_agg) %>% 
     summarise(sum = sum(n))
   
+  minimum <- min(dataset$sum, na.rm = T)
+  maximum <- max(dataset$sum, na.rm = T)
+  
   plot <- ggplot(dataset, aes(x = wave, y = log(sum+1), fill = freq_agg)) +
     geom_boxplot() + 
     facet_wrap(~ part_age_cat, nrow = 4) +
+    scale_y_continuous(
+      name = expression("Number of contacts (log-scale)"),
+      sec.axis = sec_axis(~ exp(.)-1,
+                          name = "Number of contacts",
+                          breaks = breaks_input)) +
     theme_classic() +
     ylab("Number of contacts (log-scale)") +
     xlab("Wave") +
@@ -1810,13 +1818,13 @@ fplot_boxplot_daily_nondaily_comix <- function(dataset = data_to_plot){
                       values = c("#219ebc", "#ffb703")) +
     theme(legend.position = "top",
           text = element_text(size = 16),
-          legend.title = element_blank()) + ylim(0, 5)
+          legend.title = element_blank())
   
   return(plot)
   
 }
 
-fplot_boxplot_daily_nondaily <- function(dataset = data_to_plot){
+fplot_boxplot_daily_nondaily <- function(dataset = data_to_plot, breaks_input){
   
   dataset <- dataset %>% 
     mutate(freq_agg = ifelse(frequency_multi %in% "daily", "daily", "non_daily"))
@@ -1825,9 +1833,17 @@ fplot_boxplot_daily_nondaily <- function(dataset = data_to_plot){
     group_by(part_id, part_age_cat, country, freq_agg) %>% 
     summarise(sum = sum(n))
   
+  minimum <- min(dataset$sum, na.rm = T)
+  maximum <- max(dataset$sum, na.rm = T)
+  
   plot <- ggplot(dataset, aes(x = country, y = log(sum+1), fill = freq_agg)) +
     geom_boxplot() + 
     facet_wrap(~ part_age_cat) +
+    scale_y_continuous(
+      name = expression("Number of contacts (log-scale)"),
+      sec.axis = sec_axis(~ exp(.)-1,
+                          name = "Number of contacts",
+                          breaks = breaks_input)) +
     theme_classic() +
     ylab("Number of contacts (log-scale)") +
     xlab("Country") +
@@ -1836,7 +1852,8 @@ fplot_boxplot_daily_nondaily <- function(dataset = data_to_plot){
     theme(legend.position = "top",
           text = element_text(size = 18),
           legend.title = element_blank()) +
-    facet_wrap(~ part_age_cat, nrow = 4) + ylim(0, 5)
+    facet_wrap(~ part_age_cat, nrow = 4) 
+  
   return(plot)
 }
 

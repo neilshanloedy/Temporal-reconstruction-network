@@ -146,63 +146,67 @@ temporary_nonphys <- melt(temporary_nonphys, value.name = "percentage",
 
 levels_age <- unique(temporary_home$age_cat)
 
-png(filename = "../results/CoMix/final/appendix_paper_contacts_home_proportions.png", width = 900, height = 700)
+png(filename = "../results/CoMix/appendix_paper_contacts_home_proportions.png", width = 900, height = 700)
 par(oma = c(3,1,0.75,1), mfrow = c(2, 2), mar = c(3, 4, 3, 1))
 for(i in levels_age){
   plot(temporary_home[temporary_home$age_cat == i & temporary_home$frequency == "daily",]$wave, 
        temporary_home[temporary_home$age_cat == i & temporary_home$frequency == "daily",]$percentage,
        type = "b", ylim = c(0, 1), xaxt = "n", pch = 21, bg = "#F8766D",
-       main = i, xlab = "", ylab = "")
+       main = i, xlab = "", ylab = "",
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
   points(temporary_home[temporary_home$age_cat == i & temporary_home$frequency == "weekly",]$wave, 
        temporary_home[temporary_home$age_cat == i & temporary_home$frequency == "weekly",]$percentage,
-       type = "b", yaxt = "n", xaxt = "n", pch = 22, bg = "#A3A500")
+       type = "b", yaxt = "n", xaxt = "n", pch = 22, bg = "#A3A500", cex = 1.5)
   points(temporary_home[temporary_home$age_cat == i & temporary_home$frequency == "monthly",]$wave, 
          temporary_home[temporary_home$age_cat == i & temporary_home$frequency == "monthly",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 23, bg = "#00BF7D")
+         type = "b", yaxt = "n", xaxt = "n", pch = 23, bg = "#00BF7D", cex = 1.5)
   points(temporary_home[temporary_home$age_cat == i & temporary_home$frequency == "a.few.times.a.year",]$wave, 
          temporary_home[temporary_home$age_cat == i & temporary_home$frequency == "a.few.times.a.year",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 24, bg = "#00B0F6")
+         type = "b", yaxt = "n", xaxt = "n", pch = 24, bg = "#00B0F6", cex = 1.5)
   points(temporary_home[temporary_home$age_cat == i & temporary_home$frequency == "first.time",]$wave, 
          temporary_home[temporary_home$age_cat == i & temporary_home$frequency == "first.time",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 25, bg = "#E76BF3")
-  axis(1, at = seq(9, 43, by = 2), las = 1)
-  mtext(side = 2, line = 3, "Percentage of contacts", cex = 1.2)
+         type = "b", yaxt = "n", xaxt = "n", pch = 25, bg = "#E76BF3", cex = 1.5)
+  axis(1, at = seq(9, 43, by = 2), las = 1,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+  mtext(side = 2, line = 3, "Percentage of contacts", cex = 1.5)
   if(i %in% c("Adult", "Elderly")){
-    mtext(side = 1, line = 2, "Survey wave", cex = 1.2)
+    mtext(side = 1, line = 2.5, "Survey wave", cex = 1.5)
   }
 }
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
-plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
+plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n', cex = 1.5)
 legend(x = "bottom", inset = 0,
        legend = c("Daily", "Weekly", "Monthly", "A few times a year", "First time"), 
        pt.bg= c("#F8766D", "#A3A500", "#00BF7D", "#00B0F6", "#E76BF3"), 
        pch = c(21,22,23,24,25),
-       cex=1.25, horiz = TRUE, bty = "n")
+       cex=1.5, horiz = TRUE, bty = "n")
 dev.off()
 
-png(filename = "../results/CoMix/final/appendix_paper_contacts_nothome_proportions.png", width = 900, height = 700)
+png(filename = "../results/CoMix/appendix_paper_contacts_nothome_proportions.png", width = 900, height = 700)
 par(oma = c(3,1,0.75,1), mfrow = c(2, 2), mar = c(3, 4, 3, 1))
 for(i in levels_age){
   plot(temporary_not_home[temporary_not_home$age_cat == i & temporary_not_home$frequency == "daily",]$wave, 
        temporary_not_home[temporary_not_home$age_cat == i & temporary_not_home$frequency == "daily",]$percentage,
        type = "b", ylim = c(0, 1), xaxt = "n", pch = 21, bg = "#F8766D",
-       main = i, xlab = "", ylab = "")
+       main = i, xlab = "", ylab = "",
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
   points(temporary_not_home[temporary_not_home$age_cat == i & temporary_not_home$frequency == "weekly",]$wave, 
          temporary_not_home[temporary_not_home$age_cat == i & temporary_not_home$frequency == "weekly",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 22, bg = "#A3A500")
+         type = "b", yaxt = "n", xaxt = "n", pch = 22, bg = "#A3A500", cex = 1.5)
   points(temporary_not_home[temporary_not_home$age_cat == i & temporary_not_home$frequency == "monthly",]$wave, 
          temporary_not_home[temporary_not_home$age_cat == i & temporary_not_home$frequency == "monthly",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 23, bg = "#00BF7D")
+         type = "b", yaxt = "n", xaxt = "n", pch = 23, bg = "#00BF7D", cex = 1.5)
   points(temporary_not_home[temporary_not_home$age_cat == i & temporary_not_home$frequency == "a.few.times.a.year",]$wave, 
          temporary_not_home[temporary_not_home$age_cat == i & temporary_not_home$frequency == "a.few.times.a.year",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 24, bg = "#00B0F6")
+         type = "b", yaxt = "n", xaxt = "n", pch = 24, bg = "#00B0F6", cex = 1.5)
   points(temporary_not_home[temporary_not_home$age_cat == i & temporary_not_home$frequency == "first.time",]$wave, 
          temporary_not_home[temporary_not_home$age_cat == i & temporary_not_home$frequency == "first.time",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 25, bg = "#E76BF3")
-  axis(1, at = seq(9, 43, by = 2), las = 1)
-  mtext(side = 2, line = 3, "Percentage of contacts", cex = 1.2)
+         type = "b", yaxt = "n", xaxt = "n", pch = 25, bg = "#E76BF3", cex = 1.5)
+  axis(1, at = seq(9, 43, by = 2), las = 1,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+  mtext(side = 2, line = 3, "Percentage of contacts", cex = 1.5)
   if(i %in% c("Adult", "Elderly")){
-    mtext(side = 1, line = 2, "Survey wave", cex = 1.2)
+    mtext(side = 1, line = 2.5, "Survey wave", cex = 1.5)
   }
 }
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
@@ -211,32 +215,34 @@ legend(x = "bottom", inset = 0,
        legend = c("Daily", "Weekly", "Monthly", "A few times a year", "First time"), 
        pt.bg= c("#F8766D", "#A3A500", "#00BF7D", "#00B0F6", "#E76BF3"), 
        pch = c(21,22,23,24,25),
-       cex=1.25, horiz = TRUE, bty = "n")
+       cex=1.5, horiz = TRUE, bty = "n")
 dev.off()
 
-png(filename = "../results/CoMix/final/appendix_paper_contacts_physical_proportions.png", width = 900, height = 700)
+png(filename = "../results/CoMix/appendix_paper_contacts_physical_proportions.png", width = 900, height = 700)
 par(oma = c(3,1,0.75,1), mfrow = c(2, 2), mar = c(3, 4, 3, 1))
 for(i in levels_age){
   plot(temporary_physical[temporary_physical$age_cat == i & temporary_physical$frequency == "daily",]$wave, 
        temporary_physical[temporary_physical$age_cat == i & temporary_physical$frequency == "daily",]$percentage,
        type = "b", ylim = c(0, 1), xaxt = "n", pch = 21, bg = "#F8766D",
-       main = i, xlab = "", ylab = "")
+       main = i, xlab = "", ylab = "",
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
   points(temporary_physical[temporary_physical$age_cat == i & temporary_physical$frequency == "weekly",]$wave, 
          temporary_physical[temporary_physical$age_cat == i & temporary_physical$frequency == "weekly",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 22, bg = "#A3A500")
+         type = "b", yaxt = "n", xaxt = "n", pch = 22, bg = "#A3A500", cex = 1.5)
   points(temporary_physical[temporary_physical$age_cat == i & temporary_physical$frequency == "monthly",]$wave, 
          temporary_physical[temporary_physical$age_cat == i & temporary_physical$frequency == "monthly",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 23, bg = "#00BF7D")
+         type = "b", yaxt = "n", xaxt = "n", pch = 23, bg = "#00BF7D", cex = 1.5)
   points(temporary_physical[temporary_physical$age_cat == i & temporary_physical$frequency == "a.few.times.a.year",]$wave, 
          temporary_physical[temporary_physical$age_cat == i & temporary_physical$frequency == "a.few.times.a.year",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 24, bg = "#00B0F6")
+         type = "b", yaxt = "n", xaxt = "n", pch = 24, bg = "#00B0F6", cex = 1.5)
   points(temporary_physical[temporary_physical$age_cat == i & temporary_physical$frequency == "first.time",]$wave, 
          temporary_physical[temporary_physical$age_cat == i & temporary_physical$frequency == "first.time",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 25, bg = "#E76BF3")
-  axis(1, at = seq(9, 43, by = 2), las = 1)
-  mtext(side = 2, line = 3, "Percentage of contacts", cex = 1.2)
+         type = "b", yaxt = "n", xaxt = "n", pch = 25, bg = "#E76BF3", cex = 1.5)
+  axis(1, at = seq(9, 43, by = 2), las = 1,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+  mtext(side = 2, line = 3, "Percentage of contacts", cex = 1.5)
   if(i %in% c("Adult", "Elderly")){
-    mtext(side = 1, line = 2, "Survey wave", cex = 1.2)
+    mtext(side = 1, line = 2, "Survey wave", cex = 1.5)
   }
 }
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
@@ -245,32 +251,34 @@ legend(x = "bottom", inset = 0,
        legend = c("Daily", "Weekly", "Monthly", "A few times a year", "First time"), 
        pt.bg= c("#F8766D", "#A3A500", "#00BF7D", "#00B0F6", "#E76BF3"), 
        pch = c(21,22,23,24,25),
-       cex=1.25, horiz = TRUE, bty = "n")
+       cex=1.5, horiz = TRUE, bty = "n")
 dev.off()
 
-png(filename = "../results/CoMix/final/appendix_paper_contacts_nonphysical_proportions.png", width = 900, height = 700)
+png(filename = "../results/CoMix/appendix_paper_contacts_nonphysical_proportions.png", width = 900, height = 700)
 par(oma = c(3,1,0.75,1), mfrow = c(2, 2), mar = c(3, 4, 3, 1))
 for(i in levels_age){
   plot(temporary_nonphys[temporary_nonphys$age_cat == i & temporary_nonphys$frequency == "daily",]$wave, 
        temporary_nonphys[temporary_nonphys$age_cat == i & temporary_nonphys$frequency == "daily",]$percentage,
        type = "b", ylim = c(0, 1), xaxt = "n", pch = 21, bg = "#F8766D",
-       main = i, xlab = "", ylab = "")
+       main = i, xlab = "", ylab = "",
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
   points(temporary_nonphys[temporary_nonphys$age_cat == i & temporary_nonphys$frequency == "weekly",]$wave, 
          temporary_nonphys[temporary_nonphys$age_cat == i & temporary_nonphys$frequency == "weekly",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 22, bg = "#A3A500")
+         type = "b", yaxt = "n", xaxt = "n", pch = 22, bg = "#A3A500", cex = 1.5)
   points(temporary_nonphys[temporary_nonphys$age_cat == i & temporary_nonphys$frequency == "monthly",]$wave, 
          temporary_nonphys[temporary_nonphys$age_cat == i & temporary_nonphys$frequency == "monthly",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 23, bg = "#00BF7D")
+         type = "b", yaxt = "n", xaxt = "n", pch = 23, bg = "#00BF7D", cex = 1.5)
   points(temporary_nonphys[temporary_nonphys$age_cat == i & temporary_nonphys$frequency == "a.few.times.a.year",]$wave, 
          temporary_nonphys[temporary_nonphys$age_cat == i & temporary_nonphys$frequency == "a.few.times.a.year",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 24, bg = "#00B0F6")
+         type = "b", yaxt = "n", xaxt = "n", pch = 24, bg = "#00B0F6", cex = 1.5)
   points(temporary_nonphys[temporary_nonphys$age_cat == i & temporary_nonphys$frequency == "first.time",]$wave, 
          temporary_nonphys[temporary_nonphys$age_cat == i & temporary_nonphys$frequency == "first.time",]$percentage,
-         type = "b", yaxt = "n", xaxt = "n", pch = 25, bg = "#E76BF3")
-  axis(1, at = seq(9, 43, by = 2), las = 1)
-  mtext(side = 2, line = 3, "Percentage of contacts", cex = 1.2)
+         type = "b", yaxt = "n", xaxt = "n", pch = 25, bg = "#E76BF3", cex = 1.5)
+  axis(1, at = seq(9, 43, by = 2), las = 1,
+       cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+  mtext(side = 2, line = 3, "Percentage of contacts", cex = 1.5)
   if(i %in% c("Adult", "Elderly")){
-    mtext(side = 1, line = 2, "Survey wave", cex = 1.2)
+    mtext(side = 1, line = 2, "Survey wave", cex = 1.5)
   }
 }
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
@@ -279,15 +287,6 @@ legend(x = "bottom", inset = 0,
        legend = c("Daily", "Weekly", "Monthly", "A few times a year", "First time"), 
        pt.bg= c("#F8766D", "#A3A500", "#00BF7D", "#00B0F6", "#E76BF3"), 
        pch = c(21,22,23,24,25),
-       cex=1.25, horiz = TRUE, bty = "n")
+       cex=1.5, horiz = TRUE, bty = "n")
 dev.off()
-
-#-------------
-
-model_allcontacts_sum <- readRDS("../rds/CoMix_fatigue_gamlss/Gamlss_fatigue_allcontacts_sum.rds")
-model_physical_sum <- readRDS("../rds/CoMix_fatigue_gamlss/Gamlss_fatigue_physical_sum.rds")
-model_outhome_sum <- readRDS("../rds/CoMix_fatigue_gamlss/Gamlss_fatigue_outhome_sum.rds")
-model_inshome_sum <- readRDS("../rds/CoMix_fatigue_gamlss/Gamlss_fatigue_inshome_sum.rds")
-
-
 
