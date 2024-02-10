@@ -1,6 +1,6 @@
 # Repetition in Social Contacts: Implications in Modelling the Transmission of Respiratory Infectious Diseases in Pre-pandemic & Pandemic Settings ##
 
-## Short summary of the study
+## Summary of the study
 In our study, we explored how human interactions impact the spread of respiratory viral infections. We utilised social contact data (POLYMOD and Belgian CoMix studies) to uncover the recurrent nature of contacts, which is often overlooked in traditional analyses. To bridge this gap, we undertake the task of describing individuals’ contact patterns over time, by characterising the interactions made with distinct individuals during a week. By reconstructing individual contact patterns over time, we found fewer distinct new contacts compared to a naive approach that ignores contact repetition. This highlights the importance of considering contact frequency to avoid underestimating the probability of transmission. Using sophisticated modelling techniques, we show how this temporal reconstruction affects disease transmission, using data from pre-pandemic and pandemic scenarios. Our findings underscore the important role of longitudinal contact analyses in shaping effective public health strategies, offering valuable insights for disease control efforts.
 
 ## Code version
@@ -79,17 +79,7 @@ These R files include functions to simulate the frequency-based contact patterns
 These files can be used to generate all frequency-based contacts in each setting.
 
 #### 2.4 marginal_comix_fatigue.R
-This code is used to generate CSV files of the CoMix data corrected for under-reported using the GAMLSS model using the cleared data.
+This code generates CSV files of the CoMix data corrected for under-reported using the GAMLSS model using the cleared data.
 
 #### 2.5 social_contact_frequencies.R
-This code is used to generates contact matrices for all settings.
-
-
-
-Title of the study
-Short summary of the study
-Code version (e.g., Git fingerprint, manual version number)
-Overview of folders/files and their contents
-Instructions for users to run the software (e.g. explain the project workflow and any configuration parameters of your software)
-Links to protocols.io or equivalent methods repositories, where applicable
-Once a paper is accepted, please include author names, contact details, links to preprint and the publication.
+This code is used to generate contact matrices for all settings.
