@@ -561,6 +561,9 @@ ggsave("results/POLYMOD/ggplot_ratio_allcontacts_results_withci_temp.png",
 #------- attack rates for physical contacts (POLYMOD)
 nboot = 3000
 
+# if the summary of the outbreak characteristics is not present, then summarise. Otherwise,
+# use the summarise outbreak characteristics.
+
 if(!file.exists("rds/POLYMOD/attack_rates/attack_rate_physical_baseline_00262_BE.rds")){
   for(i in 1:length(country_list)){
     country_input = country_list[i]
@@ -749,6 +752,9 @@ output_correction_polymod <- rbind(cbind(correction_flu, scenario = "Influenza-l
 output_correction_polymod$scenario <- factor(output_correction_polymod$scenario,
                                              levels = c("Influenza-like", "COVID-19-like"))
 
+output_correction_polymod$age_cat <- factor(output_correction_polymod$age_cat,
+                                             levels = c("Children", "Teens", "Adult", "Elderly"))
+
 output_correction_polymod_influenza <- ggplot(data = output_correction_polymod[output_correction_polymod$scenario == "Influenza-like",]) +
   geom_point(aes(country, correction, col = country)) +
   geom_errorbar(aes(x = country, ymin=lower, ymax=upper, width=0.3, col = country), linewidth = 1) +
@@ -778,13 +784,12 @@ output_correction_polymod_covid <- ggplot(data = output_correction_polymod[outpu
   theme(legend.position = "top",
         legend.title = element_blank(),
         text = element_text(size = 20),
-        strip.background = element_rect(fill = "#edf2f4")) + 
-  guides(colour = guide_legend(nrow = 1),
-         strip.text = element_text(face = "bold"))
+        strip.background = element_rect(fill = "#edf2f4"),
+        strip.text = element_text(face = "bold")) + 
+  guides(colour = guide_legend(nrow = 1))
 
 ggsave("results/POLYMOD/ggplot_correction_onlyphysical_results_withci_covid.png",
        width = 35, height = 16, units = "cm")
-
 
 #------- attack rates for physical contacts (CoMix)
 nboot = 3000
