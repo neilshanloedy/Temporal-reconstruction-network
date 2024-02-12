@@ -34,6 +34,9 @@ The "population_data_proportion.csv" file contains the proportion of the populat
 These folders contain inputs (e.g., file name, country (POLYMOD), waves (CoMix), and FOI) for each epidemic simulation conducted.
 
 ### 2. code_final
+The workflow of the code to generate all outputs are the following;
+EDA_*.R (to generate population with frequency-based contacts) --> simulate_full_epidemic.R --> plot_output_paper.R.
+
 The main codes used to generate results are *simulate_full_epidemic.R* and *plot_output_paper.R*. 
 
 In the *simulate_full_epidemic.R* we simulate the epidemics using two different approaches (naive and frequency-based). All output on the paper is generated using *plot_output_paper.R*.
