@@ -30,69 +30,6 @@ merged_dataset_physical <- prepare_data_tomodel(merged_dataset_physical)
 merged_dataset_outhome <- prepare_data_tomodel(merged_dataset_outhome)
 merged_dataset_inshome <- prepare_data_tomodel(merged_dataset_inshome)
 
-# model_allcontacts <- readRDS("rds/CoMix_fatigue_gamlss/Gamlss_fatigue_allcontacts.rds")
-# model_physical <- readRDS("rds/CoMix_fatigue_gamlss/Gamlss_fatigue_physical.rds")
-# model_outhome <- readRDS("rds/CoMix_fatigue_gamlss/Gamlss_fatigue_outhomecontacts.rds")
-# model_inshome <- readRDS("rds/CoMix_fatigue_gamlss/Gamlss_fatigue_inhomecontacts.rds")
-# 
-# cnt_model_marg_allcontacts <- marginal_dataframe(merged_dataset, model_allcontacts)
-# cnt_model_marg_physical <- marginal_dataframe(merged_dataset_physical, model_physical)
-# cnt_model_marg_outhome <- marginal_dataframe(merged_dataset_outhome, model_outhome)
-# cnt_model_marg_inshome <- marginal_dataframe(merged_dataset_inshome, model_inshome)
-# 
-# list_result <- c("cnt_model_marg_allcontacts", "cnt_model_marg_physical",
-#                  "cnt_model_marg_outhome", "cnt_model_marg_inshome")
-# 
-# list_output <- list()
-# 
-# for(i in 1:length(list_result)){
-#   boot <- c()
-#   boot_predict <- c()
-#   boot_predictf <- c()
-#   
-#   temp_data <- get(list_result[i]) %>% 
-#     dplyr::select(part_id, part_uid, wave, frequency_multi, n, predict, predict_f) %>% 
-#     group_by(part_id, part_uid, wave) %>% 
-#     summarise(n = sum(n),
-#               n_predict = sum(predict),
-#               n_predict_f = sum(predict_f))
-#   
-#   temporary <- rbind(
-#     temp_data %>%
-#       group_by(wave) %>%
-#       summarise(mean_contacts = mean(n, na.rm = TRUE),
-#                 sd_n = sd(n, na.rm = TRUE),
-#                 n_length = n()) %>%
-#       mutate(se_n = sd_n / sqrt(n_length),
-#              lower = mean_contacts - 1.96 * se_n,
-#              upper = mean_contacts + 1.96 * se_n,
-#              source = "Observed") %>% 
-#       dplyr::select(wave, lower, mean_contacts, upper, source),
-#     temp_data %>%
-#       group_by(wave) %>%
-#       summarise(mean_contacts = mean(n_predict, na.rm = T),
-#                 sd_npredict = sd(n_predict, na.rm = TRUE),
-#                 n_length = n()) %>%
-#       mutate(se_predict = sd_npredict / sqrt(n_length),
-#              lower = mean_contacts - 1.96 * se_predict,
-#              upper = mean_contacts + 1.96 * se_predict,
-#              source = "Model-based") %>% 
-#       dplyr::select(wave, lower, mean_contacts, upper, source),
-#     temp_data %>%
-#       group_by(wave) %>%
-#       summarise(mean_contacts = mean(n_predict_f, na.rm = T),
-#                 sd_npredict_f = sd(n_predict_f, na.rm = TRUE),
-#                 n_length = n()) %>%
-#       mutate(se_predict_f = sd_npredict_f / sqrt(n_length),
-#              lower = mean_contacts - 1.96 * se_predict_f,
-#              upper = mean_contacts + 1.96 * se_predict_f,
-#              source = "Model-based with fatigue correction") %>% 
-#       dplyr::select(wave, lower, mean_contacts, upper, source))
-#     
-#   list_output[[i]] <- cbind(temporary, scenario = sub("^cnt_model_marg_", "", list_result[i]))
-# }
-# output_comix_final <- do.call("rbind", list_output)
-
 # load the aggregated data
 #--------------------------
 merged_dataset_sum <- read.csv("../data/CoMix_fatigue/comix_dataset_allcontacts_sum.csv")[,-1]
@@ -223,6 +160,14 @@ output_ggplot <- ggplot(data = output_comix_final_sum) +
 ggsave("results/CoMix/ggplot_gamlss_model_comparisons.png",
        width = 25, height = 18, units = "cm")
 
+#-----------
+
+output_comix_final_sum %>% 
+  group_by(source, scenario) %>% 
+  summarise(mean = mean(mean_contacts)) %>% 
+  group_by(scenario) %>% 
+  mutate(mean_ratio = mean/mean[source == "Observed"]) 
+
 #--------------
 # create new dataset for CM
 #--------------
@@ -342,6 +287,7 @@ for(i in wave){
     
     output <- data.frame(id = c(seq(1, nboot), seq(1, nboot)),
                          foi = c(rep(foi[1], each = nboot), rep(foi[2], each = nboot)),
+                         R0 = rep(c(1,2), each = nboot),
                          wave = rep(i, (nboot + nboot)))
     
     filename = sprintf("../data/vsc_comix_input/input_forVSC%s_%04d.csv", title_phys, i)

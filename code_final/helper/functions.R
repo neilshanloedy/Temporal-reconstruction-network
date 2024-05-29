@@ -1579,36 +1579,6 @@ calculate_r0_function <- function(dataset = incidence_list_baseline){
   
 }
 
-plot_r0 <- function(dataset = input){
-  data.incidence <- dataset
-  
-  incidence_temp <- do.call(rbind, data.incidence)
-  first_infected <- sapply(data.incidence, function(x) x[1,"id"])
-  first_infected <- data.frame(boot = 1:length(first_infected), id = first_infected)
-  
-  data_first_infected <- merge(incidence_temp, first_infected) %>% 
-    mutate(n = ifelse(is.na(incidence), 0, 1)) %>% 
-    arrange(boot, day)
-  
-  calculate_r0 <- data_first_infected %>% 
-    group_by(boot) %>% 
-    summarise(sum = sum(n))
-  
-  calculate_running_mean <- function(df) {
-    n <- nrow(df)
-    result <- numeric(n)
-    for (i in 1:n) {
-      result[i] <- mean(df$sum[1:i])
-    }
-    return(result)
-  }
-  
-  running_means <- calculate_running_mean(calculate_r0)
-  
-  return(running_means)
-  
-}
-
 subset_list_by_length <- function(lst, x) {
   subset <- lapply(lst, function(vec) {
     if (length(vec) > x) {
@@ -1653,35 +1623,25 @@ effective_secondary_case_function <- function(data = distange_dataframe_aug){
 }
 
 # R0 formula
-r0_noage <- function(foi, mean_daily, other_daily){
-  r0_unclust = (N-1-mean_daily)/N * foi/gamma * other_daily
-  r0_clust = (mean_daily) * (1-(gamma*(1-foi))/(1-(1-gamma)*(1-foi)))
+r0_noage <- function(foi, gamma, mean_daily, other_daily){
+  r0_unclust = (N-mean_daily)/N * foi/gamma * other_daily
+  r0_clust = (mean_daily) * (1-(1/gamma*(1-foi))/(1-(1-1/gamma)*(1-foi)))
   
   r0 = r0_clust + r0_unclust
   return(r0)
 }
 
-r0_age <- function(foi, mean_data, prop.age.partdata, age_level, frequency_level){
+r0_age <- function(foi, gamma, mean_daily, prop.age.partdata){
   
-  mean_input = mean_data
-  other_input = mean_input[mean_input$frequency_multi != "daily", ]
-  daily_input = mean_input[mean_input$frequency_multi == "daily", ]
+  data_temp <- merge(mean_daily, prop.age.partdata)
   
-  other_temp <- list()
-  r0_unclust_temp <- list()
-  r0_clust_temp <- list()
-  daily_temp <- list()
-  r0_temp <- list()
-  for(i in age_level){
-    other_temp[[i]] <- other_input[other_input$part_age_cat %in% i, ]
-    daily_temp[[i]] <- daily_input[daily_input$part_age_cat %in% i, ]
-    r0_unclust_temp[[i]] <- (N-1-daily_temp[[i]]$mean)/N * as.vector(other_temp[[i]]$mean)*foi/gamma
-    r0_clust_temp[[i]] <- (daily_temp[[i]]$mean) * (1-(gamma*(1-foi))/(1-(1-gamma)*(1-foi)))
-    r0_temp[[i]] <- sum(c(r0_clust_temp[[i]], r0_unclust_temp[[i]]))
-  }
+  contact_mean_daily <- data_temp[data_temp$freq == "daily",]$mean
+  contact_mean_others <- data_temp[data_temp$freq != "daily",]$mean
   
-  r0 <- weighted.mean(as.vector(unlist(r0_temp)), prop.age.partdata$prop)
-  return(r0)
+  res <- mapply(function(x, y) r0_noage(foi, gamma, x, y), contact_mean_daily, contact_mean_others)
+  
+  output <- weighted.mean(res, unique(data_temp$prop))
+  return(output)
 }
 
 # calculate q

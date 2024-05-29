@@ -20,8 +20,7 @@ for(i in country){
     source('helper/simulate_weekly_temporal.R')
     source('helper/simulate_epidemic_CM_fullepidemics.R')
     source('helper/functions.R')
-    source('helper/ggplot_functions.R')
-    
+
     print(paste0("doing ", i, " for ", cnt, " contacts"))
     title_phys <- ""
     
@@ -105,3 +104,36 @@ for(i in country){
     count = count + 1
   }
 }
+
+# code for dummy population to calculate R0
+
+# for(i in country){
+#   for(cnt in is_physical){
+#     source('helper/simulate_weekly_temporal.R')
+#     source('helper/simulate_epidemic_CM_fullepidemics.R')
+#     source('helper/functions.R')
+#     
+#     print(paste0("doing ", i, " for ", cnt, " contacts"))
+#     title_phys <- ""
+#     
+#     if(cnt %in% "physical"){
+#       title_phys <- "_physical"
+#     }
+#     
+#     load(sprintf("../data/data_input/POLYMOD/input_polymod%s_%s.RData", title_phys, i))
+#     load(sprintf("../data/data_input/POLYMOD/social_matrices%s_%s.RData", title_phys, i))
+#     
+#     # here we simulate the epidemic
+#     N = 1000
+#     
+#     if(!file.exists(sprintf("rds/POLYMOD/reproduction_number_pop/data_temp_1000_pop%s_%s.rds", title_phys, i))){
+#       data_temp <- simulate_weekly_contact_gp(n_sample = N,
+#                                               number.contacts = number.contact.input,
+#                                               proportion.week = prop.week,
+#                                               proportion.age = prop.age.partdata)
+#       saveRDS(data_temp, sprintf("rds/POLYMOD/reproduction_number_pop/data_temp_1000_pop%s_%s.rds", title_phys, i))
+#     } else {
+#       data_temp <- readRDS(sprintf("rds/POLYMOD/reproduction_number_pop/data_temp_1000_pop%s_%s.rds", title_phys, i))
+#     }
+#   }
+# }
