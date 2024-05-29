@@ -575,8 +575,12 @@ nboot = 3000
 # if the summary of the outbreak characteristics is not present, then summarise. Otherwise,
 # use the summarise outbreak characteristics.
 
+<<<<<<< HEAD
 R0 <- c(1.3 , 3.3)
 if(!file.exists("rds/POLYMOD/attack_rates/samefoi/attack_rate_physical_baseline_00001_BE.rds")){
+=======
+if(!file.exists("rds/POLYMOD/attack_rates/attack_rate_physical_baseline_00262_BE.rds")){
+>>>>>>> 5eac9d8d9ee4d60891f6c6401213dc4bae670d30
   for(i in 1:length(country_list)){
     country_input = country_list[i]
     print(sprintf("doing %s for physical contacts", country_input))
@@ -766,6 +770,7 @@ output_correction_polymod$scenario <- factor(output_correction_polymod$scenario,
                                              levels = c("Influenza-like", "COVID-19-like"))
 
 output_correction_polymod$age_cat <- factor(output_correction_polymod$age_cat,
+<<<<<<< HEAD
                                             levels = c("Children", "Teens", "Adult", "Elderly"),
                                             labels = c("Children (0-12 years)", "Teens (13-18 years)",
                                                        "Adult (19-65 years)", "Elderly (66+ years"))
@@ -773,6 +778,9 @@ output_correction_polymod$age_cat <- factor(output_correction_polymod$age_cat,
 output_correction_polymod %>% 
   group_by(scenario) %>% 
   summarise(mean = mean(correction))
+=======
+                                             levels = c("Children", "Teens", "Adult", "Elderly"))
+>>>>>>> 5eac9d8d9ee4d60891f6c6401213dc4bae670d30
 
 output_correction_polymod_influenza <- ggplot(data = output_correction_polymod[output_correction_polymod$scenario == "Influenza-like",]) +
   geom_point(aes(country, correction, col = country)) +
